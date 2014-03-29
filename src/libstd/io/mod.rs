@@ -225,6 +225,7 @@ use uint;
 use unstable::finally::try_finally;
 use slice::{OwnedVector, MutableVector, ImmutableVector, OwnedCloneableVector};
 use slice;
+use collections::enum_set::{EnumSet};
 
 // Reexports
 pub use self::stdio::stdin;
@@ -1453,21 +1454,22 @@ pub struct UnstableFileStat {
 
 /// A set of permissions for a file or directory is represented by a set of
 /// flags which are or'd together.
-pub type FilePermission = u32;
+enum FilePermissionFlag {
+    UserRead     = 0x100,
+    UserWrite    = 0x080,
+    UserExecute  = 0x040,
+    GroupRead    = 0x020,
+    GroupWrite   = 0x010,
+    GroupExecute = 0x008,
+    OtherRead    = 0x004,
+    OtherWrite   = 0x002,
+    OtherExecute = 0x001,
+}
 
-// Each permission bit
-pub static UserRead: FilePermission     = 0x100;
-pub static UserWrite: FilePermission    = 0x080;
-pub static UserExecute: FilePermission  = 0x040;
-pub static GroupRead: FilePermission    = 0x020;
-pub static GroupWrite: FilePermission   = 0x010;
-pub static GroupExecute: FilePermission = 0x008;
-pub static OtherRead: FilePermission    = 0x004;
-pub static OtherWrite: FilePermission   = 0x002;
-pub static OtherExecute: FilePermission = 0x001;
+pub type FilePermission = EnumSet<FilePermissionFlag>;
 
 // Common combinations of these bits
-pub static UserRWX: FilePermission  = UserRead | UserWrite | UserExecute;
+pub static UserRWX: FilePermission  = FilePermission | UserRead | UserWrite | UserExecute;
 pub static GroupRWX: FilePermission = GroupRead | GroupWrite | GroupExecute;
 pub static OtherRWX: FilePermission = OtherRead | OtherWrite | OtherExecute;
 
