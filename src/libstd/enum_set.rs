@@ -23,7 +23,7 @@ use iter::Iterator;
 pub struct EnumSet<E> {
     // We must maintain the invariant that no bits are set
     // for which no variant exists
-    priv bits: uint
+    bits: uint
 }
 
 /// An interface for casting C-like enum to uint and back.

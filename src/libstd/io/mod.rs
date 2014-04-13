@@ -225,7 +225,8 @@ use uint;
 use unstable::finally::try_finally;
 use slice::{OwnedVector, MutableVector, ImmutableVector, OwnedCloneableVector};
 use slice;
-use collections::enum_set::{EnumSet};
+use hash::Hash;
+use enum_set::{EnumSet};
 
 // Reexports
 pub use self::stdio::stdin;
@@ -1454,24 +1455,37 @@ pub struct UnstableFileStat {
 
 /// A set of permissions for a file or directory is represented by a set of
 /// flags which are or'd together.
+
+// static _UserRead     : FilePermission = EnumSet { bits: 0x100 };
+// static _UserWrite    : FilePermission = EnumSet::empty(); //.add(0x080),
+// static _UserExecute  : FilePermission = EnumSet::empty(); //.add(0x040),
+// static _GroupRead    : FilePermission = EnumSet::empty(); //.add(0x020),
+// static _GroupWrite   : FilePermission = EnumSet::empty(); //.add(0x010),
+// static _GroupExecute : FilePermission = EnumSet::empty(); //.add(0x008),
+// static _OtherRead    : FilePermission = EnumSet::empty(); //.add(0x004),
+// static _OtherWrite   : FilePermission = EnumSet::empty(); //.add(0x002),
+// static _OtherExecute : FilePermission = EnumSet::empty(); //.add(0x001),
+
+#[deriving(Hash)]
 enum FilePermissionFlag {
-    UserRead     = 0x100,
-    UserWrite    = 0x080,
-    UserExecute  = 0x040,
-    GroupRead    = 0x020,
-    GroupWrite   = 0x010,
-    GroupExecute = 0x008,
-    OtherRead    = 0x004,
-    OtherWrite   = 0x002,
-    OtherExecute = 0x001,
+    UserRead     = EnumSet { bits: 0x100 },
+    UserWrite    = EnumSet { bits: 0x080 },
+    UserExecute  = EnumSet { bits: 0x040 },
+    GroupRead    = EnumSet { bits: 0x020 },
+    GroupWrite   = EnumSet { bits: 0x010 },
+    GroupExecute = EnumSet { bits: 0x008 },
+    OtherRead    = EnumSet { bits: 0x004 },
+    OtherWrite   = EnumSet { bits: 0x002 },
+    OtherExecute = EnumSet { bits: 0x001 },
 }
 
 pub type FilePermission = EnumSet<FilePermissionFlag>;
 
+
 // Common combinations of these bits
-pub static UserRWX: FilePermission  = FilePermission | UserRead | UserWrite | UserExecute;
-pub static GroupRWX: FilePermission = GroupRead | GroupWrite | GroupExecute;
-pub static OtherRWX: FilePermission = OtherRead | OtherWrite | OtherExecute;
+pub static UserRWX: FilePermission  = EnumSet { bits: 0x1b0 };//UserRead | UserWrite | UserExecute;
+pub static GroupRWX: FilePermission = EnumSet { bits: 0x1b0 };//GroupRead | GroupWrite | GroupExecute;
+pub static OtherRWX: FilePermission = EnumSet { bits: 0x1b0 };//OtherRead | OtherWrite | OtherExecute;
 
 /// A set of permissions for user owned files, this is equivalent to 0644 on
 /// unix-like systems.
