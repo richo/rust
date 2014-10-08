@@ -9,7 +9,7 @@ patch=$(echo "$rust_version" | cut -f 3 -d '.')
 rust_version="${major}.$(expr $minor + 1).${patch}"
 
 rev=`git rev-parse --short @`
-branch=$(git symbolic-ref HEAD | sed -e 's|refs/heads/||')
+branch=$(git symbolic-ref HEAD | sed -e 's|refs/heads/||' -e 's|/|_|g')
 
 if [ "$branch" != "master" ]; then
     prefix="~/.rusts/$rust_version-$branch"
