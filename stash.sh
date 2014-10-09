@@ -1,7 +1,7 @@
 #!/bin/sh
 set -xe
 
-rust_version=$(head -n 1 RELEASES.txt | cut -f 2 -d " ")
+rust_version=$(head -n 1 RELEASES.md | cut -f 2 -d " ")
 major=$(echo "$rust_version" | cut -f 1 -d '.')
 minor=$(echo "$rust_version" | cut -f 2 -d '.')
 patch=$(echo "$rust_version" | cut -f 3 -d '.')
