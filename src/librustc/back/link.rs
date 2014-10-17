@@ -33,6 +33,7 @@ use std::io::{fs, TempDir, Command};
 use std::io;
 use std::mem;
 use std::str;
+use std::os;
 use std::string::String;
 use flate;
 use serialize::hex::ToHex;
@@ -370,13 +371,13 @@ pub fn get_cc_prog(sess: &Session) -> String {
     // It would be flexible to use cc (system's default C compiler)
     // instead of hard-coded gcc.
     // For Windows, there is no cc command, so we add a condition to make it use gcc.
-    match std::os::getenv("CC") {
+    match os::getenv("CC") {
         Some(cc) => cc,
         None => match sess.targ_cfg.os {
             abi::OsWindows => "gcc",
             _ => "cc",
-        }
-    }.to_string()
+        }.to_string()
+    }
 }
 
 pub fn remove(sess: &Session, path: &Path) {
