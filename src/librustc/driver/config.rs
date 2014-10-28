@@ -18,7 +18,7 @@ use driver::session::Session;
 use back;
 use back::write;
 use back::target_strs;
-use back::{arm, x86, x86_64, mips, mipsel};
+use back::{arm, x86, x86_64, mips, mipsel, powerpc};
 use lint;
 
 use syntax::abi;
@@ -447,11 +447,12 @@ pub fn default_configuration(sess: &Session) -> ast::CrateConfig {
     // ARM is bi-endian, however using NDK seems to default
     // to little-endian unless a flag is provided.
     let (end,arch,wordsz) = match sess.targ_cfg.arch {
-        abi::X86 =>    ("little", "x86",    "32"),
-        abi::X86_64 => ("little", "x86_64", "64"),
-        abi::Arm =>    ("little", "arm",    "32"),
-        abi::Mips =>   ("big",    "mips",   "32"),
-        abi::Mipsel => ("little", "mipsel", "32")
+        abi::X86 =>     ("little", "x86",     "32"),
+        abi::X86_64 =>  ("little", "x86_64",  "64"),
+        abi::Arm =>     ("little", "arm",     "32"),
+        abi::Mips =>    ("big",    "mips",    "32"),
+        abi::Mipsel =>  ("little", "mipsel",  "32"),
+        abi::PowerPC => ("big",    "powerpc", "32")
     };
 
     let fam = match sess.targ_cfg.os {
@@ -531,7 +532,12 @@ static architecture_abis : &'static [(&'static str, abi::Architecture)] = &[
     ("thumb",  abi::Arm),
 
     ("mipsel", abi::Mipsel),
-    ("mips",   abi::Mips)];
+    ("mips",   abi::Mips),
+
+    ("ppc32",  abi::PowerPC),
+    // Enormous hack
+    ("powerpc",  abi::PowerPC),
+];
 
 pub fn build_target_config(sopts: &Options) -> Config {
     let os = match get_os(sopts.target_triple.as_slice()) {
@@ -550,7 +556,8 @@ pub fn build_target_config(sopts: &Options) -> Config {
       abi::X86_64 => (ast::TyI64, ast::TyU64),
       abi::Arm => (ast::TyI32, ast::TyU32),
       abi::Mips => (ast::TyI32, ast::TyU32),
-      abi::Mipsel => (ast::TyI32, ast::TyU32)
+      abi::Mipsel => (ast::TyI32, ast::TyU32),
+      abi::PowerPC => (ast::TyI32, ast::TyU32),
     };
     let target_triple = sopts.target_triple.clone();
     let target_strs = match arch {
@@ -558,7 +565,8 @@ pub fn build_target_config(sopts: &Options) -> Config {
       abi::X86_64 => x86_64::get_target_strs(target_triple, os),
       abi::Arm => arm::get_target_strs(target_triple, os),
       abi::Mips => mips::get_target_strs(target_triple, os),
-      abi::Mipsel => mipsel::get_target_strs(target_triple, os)
+      abi::Mipsel => mipsel::get_target_strs(target_triple, os),
+      abi::PowerPC => powerpc::get_target_strs(target_triple, os),
     };
     Config {
         os: os,

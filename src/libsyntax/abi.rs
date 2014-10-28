@@ -44,7 +44,8 @@ pub enum Architecture {
     X86_64,
     Arm,
     Mips,
-    Mipsel
+    Mipsel,
+    PowerPC,
 }
 
 #[allow(non_uppercase_statics)]

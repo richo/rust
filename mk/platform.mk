@@ -349,9 +349,9 @@ CFG_RUN_TARG_arm-unknown-linux-gnueabihf=$(call CFG_RUN_arm-unknown-linux-gnueab
 RUSTC_FLAGS_arm-unknown-linux-gnueabihf := -C target-feature=+v6,+vfp2
 RUSTC_CROSS_FLAGS_arm-unknown-linux-gnueabihf :=
 
-# arm-unknown-linux-gnueabihf configuration
+# ppc32-unknown-linux-gcc configuration
 CROSS_PREFIX_ppc32-unknown-linux-gnu=ppc32-linux-gnu-
-CC_ppc32-unknown-linux-gnu=gcc
+CC_ppc32-unknown-linux-gnu=clang
 CXX_ppc32-unknown-linux-gnu=g++
 CPP_ppc32-unknown-linux-gnu=gcc -E
 AR_ppc32-unknown-linux-gnu=ar
@@ -377,6 +377,36 @@ CFG_LDPATH_ppc32-unknown-linux-gnu :=
 CFG_RUN_ppc32-unknown-linux-gnu=$(2)
 CFG_RUN_TARG_ppc32-unknown-linux-gnu=$(call CFG_RUN_ppc32-unknown-linux-gnu,,$(2))
 RUSTC_FLAGS_ppc32-unknown-linux-gnu := -C target-feature=+v6,+vfp2
+RUSTC_CROSS_FLAGS_ppc32-unknown-linux-gnu :=
+
+# ppc32-unknown-linux-gcc configuration
+CROSS_PREFIX_ppc32-unknown-linux-gnu=ppc32-linux-gnu-
+CC_ppc32-unknown-linux-gnu=clang
+CXX_ppc32-unknown-linux-gnu=g++
+CPP_ppc32-unknown-linux-gnu=gcc -E
+AR_ppc32-unknown-linux-gnu=ar
+CFG_LIB_NAME_ppc32-unknown-linux-gnu=lib$(1).so
+CFG_STATIC_LIB_NAME_ppc32-unknown-linux-gnu=lib$(1).a
+CFG_LIB_GLOB_ppc32-unknown-linux-gnu=lib$(1)-*.so
+CFG_LIB_DSYM_GLOB_ppc32-unknown-linux-gnu=lib$(1)-*.dylib.dSYM
+CFG_CFLAGS_ppc32-unknown-linux-gnu := -D__ppc32__ $(CFLAGS)
+CFG_GCCISH_CFLAGS_ppc32-unknown-linux-gnu := -Wall -g -fPIC -D__ppc32__ $(CFLAGS)
+CFG_GCCISH_CXXFLAGS_ppc32-unknown-linux-gnu := -fno-rtti $(CXXFLAGS)
+CFG_GCCISH_LINK_FLAGS_ppc32-unknown-linux-gnu := -shared -fPIC -g
+CFG_GCCISH_DEF_FLAG_ppc32-unknown-linux-gnu := -Wl,--export-dynamic,--dynamic-list=
+CFG_GCCISH_PRE_LIB_FLAGS_ppc32-unknown-linux-gnu := -Wl,-whole-archive
+CFG_GCCISH_POST_LIB_FLAGS_ppc32-unknown-linux-gnu := -Wl,-no-whole-archive
+CFG_DEF_SUFFIX_ppc32-unknown-linux-gnu := .linux.def
+CFG_LLC_FLAGS_ppc32-unknown-linux-gnu :=
+CFG_INSTALL_NAME_ar,-unknown-linux-gnu =
+CFG_EXE_SUFFIX_ppc32-unknown-linux-gnu :=
+CFG_WINDOWSY_ppc32-unknown-linux-gnu :=
+CFG_UNIXY_ppc32-unknown-linux-gnu := 1
+CFG_PATH_MUNGE_ppc32-unknown-linux-gnu := true
+CFG_LDPATH_ppc32-unknown-linux-gnu :=
+CFG_RUN_ppc32-unknown-linux-gnu=$(2)
+CFG_RUN_TARG_ppc32-unknown-linux-gnu=$(call CFG_RUN_ppc32-unknown-linux-gnu,,$(2))
+RUSTC_FLAGS_ppc32-unknown-linux-gnu :=
 RUSTC_CROSS_FLAGS_ppc32-unknown-linux-gnu :=
 
 # powerpc-unknown-linux-gnu configuration
