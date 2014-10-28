@@ -72,6 +72,7 @@ mod x86_64_pc_windows_gnu;
 mod x86_64_unknown_freebsd;
 mod x86_64_unknown_dragonfly;
 mod x86_64_unknown_linux_gnu;
+mod powerpc_unknown_linux_gnu;
 
 /// Everything `rustc` knows about how to compile for a specific target.
 ///
@@ -347,7 +348,9 @@ impl Target {
             arm_apple_ios,
 
             x86_64_pc_windows_gnu,
-            i686_pc_windows_gnu
+            i686_pc_windows_gnu,
+
+            powerpc_unknown_linux_gnu
         )
 
 

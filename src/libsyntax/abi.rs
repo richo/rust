@@ -57,7 +57,8 @@ pub enum Architecture {
     X86_64,
     Arm,
     Mips,
-    Mipsel
+    Mipsel,
+    PowerPC,
 }
 
 impl Copy for Architecture {}

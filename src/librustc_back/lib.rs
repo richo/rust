@@ -44,6 +44,7 @@ pub mod arm;
 pub mod fs;
 pub mod mips;
 pub mod mipsel;
+pub mod powerpc;
 pub mod rpath;
 pub mod sha2;
 pub mod svh;
