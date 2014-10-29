@@ -390,6 +390,8 @@ fn mk_cenum(cx: &CrateContext, hint: Hint, bounds: &IntBounds) -> Repr {
     }
 }
 
+#[allow(unused_variables)]
+#[allow(non_snake_case)]
 fn range_to_inttype(cx: &CrateContext, hint: Hint, bounds: &IntBounds) -> IntType {
     debug!("range_to_inttype: {} {}", hint, bounds);
     // Lists of sizes to try.  u64 is always allowed as a fallback.
@@ -419,6 +421,7 @@ fn range_to_inttype(cx: &CrateContext, hint: Hint, bounds: &IntBounds) -> IntTyp
                 Arm => at_least_32,
                 Mips => at_least_32,
                 Mipsel => at_least_32,
+                PowerPC => at_least_32,
             }
         }
         attr::ReprAny => {

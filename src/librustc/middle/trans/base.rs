@@ -87,7 +87,7 @@ use std::cell::{Cell, RefCell};
 use std::collections::HashSet;
 use std::rc::Rc;
 use std::{i8, i16, i32, i64};
-use syntax::abi::{X86, X86_64, Arm, Mips, Mipsel, Rust, RustCall};
+use syntax::abi::{X86, X86_64, Arm, Mips, Mipsel, PowerPC, Rust, RustCall};
 use syntax::abi::{RustIntrinsic, Abi, OsWindows};
 use syntax::ast_util::local_def;
 use syntax::attr::AttrMetaMethods;
@@ -1149,7 +1149,7 @@ pub fn call_memcpy(cx: Block, dst: ValueRef, src: ValueRef, n_bytes: ValueRef, a
     let _icx = push_ctxt("call_memcpy");
     let ccx = cx.ccx();
     let key = match ccx.sess().targ_cfg.arch {
-        X86 | Arm | Mips | Mipsel => "llvm.memcpy.p0i8.p0i8.i32",
+        X86 | Arm | Mips | Mipsel | PowerPC => "llvm.memcpy.p0i8.p0i8.i32",
         X86_64 => "llvm.memcpy.p0i8.p0i8.i64"
     };
     let memcpy = ccx.get_intrinsic(&key);
@@ -1193,7 +1193,7 @@ fn memzero(b: &Builder, llptr: ValueRef, ty: ty::t) {
     let llty = type_of::type_of(ccx, ty);
 
     let intrinsic_key = match ccx.sess().targ_cfg.arch {
-        X86 | Arm | Mips | Mipsel => "llvm.memset.p0i8.i32",
+        X86 | Arm | Mips | Mipsel | PowerPC => "llvm.memset.p0i8.i32",
         X86_64 => "llvm.memset.p0i8.i64"
     };
 

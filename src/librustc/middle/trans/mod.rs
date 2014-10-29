@@ -34,6 +34,7 @@ pub mod cabi_x86_64;
 pub mod cabi_x86_win64;
 pub mod cabi_arm;
 pub mod cabi_mips;
+pub mod cabi_powerpc;
 pub mod foreign;
 pub mod intrinsic;
 pub mod debuginfo;

@@ -16,6 +16,7 @@ use middle::trans::cabi_x86_64;
 use middle::trans::cabi_x86_win64;
 use middle::trans::cabi_arm;
 use middle::trans::cabi_mips;
+use middle::trans::cabi_powerpc;
 use middle::trans::type_::Type;
 use syntax::abi::{X86, X86_64, Arm, Mips, Mipsel};
 use syntax::abi::{OsWindows};
@@ -103,6 +104,8 @@ pub struct FnType {
     pub ret_ty: ArgType,
 }
 
+#[allow(unused_variables)]
+#[allow(non_snake_case)]
 pub fn compute_abi_info(ccx: &CrateContext,
                         atys: &[Type],
                         rty: Type,
@@ -118,5 +121,6 @@ pub fn compute_abi_info(ccx: &CrateContext,
         Arm => cabi_arm::compute_abi_info(ccx, atys, rty, ret_def),
         Mips => cabi_mips::compute_abi_info(ccx, atys, rty, ret_def),
         Mipsel => cabi_mips::compute_abi_info(ccx, atys, rty, ret_def),
+        PowerPC => cabi_powerpc::compute_abi_info(ccx, atys, rty, ret_def),
     }
 }
