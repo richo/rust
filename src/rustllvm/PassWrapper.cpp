@@ -79,6 +79,7 @@ LLVMRustCreateTargetMachine(const char *triple,
     const llvm::Target *TheTarget = TargetRegistry::lookupTarget(Trip.getTriple(),
                                                                  Error);
     if (TheTarget == NULL) {
+        fprintf(stderr, "Error getting targetmachine %s\n", Error.c_str());
         LLVMRustSetLastError(Error.c_str());
         return NULL;
     }
@@ -104,6 +105,9 @@ LLVMRustCreateTargetMachine(const char *triple,
                                                        OptLevel);
     TM->setDataSections(DataSections);
     TM->setFunctionSections(FunctionSections);
+
+    fprintf(stderr, "Got a TM at %p\n", TM);
+
     return wrap(TM);
 }
 
