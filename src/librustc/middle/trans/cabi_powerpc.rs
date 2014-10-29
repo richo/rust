@@ -85,4 +85,3 @@ pub fn compute_abi_info(ccx: &CrateContext,
         ret_ty: ret_ty,
     };
 }
-
