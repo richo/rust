@@ -370,9 +370,12 @@ pub fn get_cc_prog(sess: &Session) -> String {
     // It would be flexible to use cc (system's default C compiler)
     // instead of hard-coded gcc.
     // For Windows, there is no cc command, so we add a condition to make it use gcc.
-    match sess.targ_cfg.os {
-        abi::OsWindows => "gcc",
-        _ => "cc",
+    match std::os::getenv("CC") {
+        Some(cc) => cc,
+        None => match sess.targ_cfg.os {
+            abi::OsWindows => "gcc",
+            _ => "cc",
+        }
     }.to_string()
 }
 
