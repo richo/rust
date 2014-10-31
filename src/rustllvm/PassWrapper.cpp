@@ -30,6 +30,28 @@ DEFINE_STDCXX_CONVERSION_FUNCTIONS(Pass, LLVMPassRef)
 DEFINE_STDCXX_CONVERSION_FUNCTIONS(TargetMachine, LLVMTargetMachineRef)
 DEFINE_STDCXX_CONVERSION_FUNCTIONS(PassManagerBuilder, LLVMPassManagerBuilderRef)
 
+extern "C" void dumpTargets(void) {
+    auto it =  TargetRegistry::begin();
+    auto ie =  TargetRegistry::end();
+
+    printf("Targets: ");
+    while (it != ie) {
+        printf("%s\t", it->getName());
+        it++;
+    }
+    printf("\n");
+}
+
+/* extern "C" void DumpTargets(void) { */
+/*     TargetRegistry::DumpTargets(); */
+/* } */
+
+/* void *TargetRegistry::DumpTargets(void) { */
+/*     for (iterator it = begin(), ie = end(); it != ie; ++it) { */
+/*         printf("Name: %s\n", it->Name.c_str()); */
+/*    } */
+/* } */
+
 extern "C" void
 LLVMInitializePasses() {
   PassRegistry &Registry = *PassRegistry::getPassRegistry();
@@ -76,6 +98,8 @@ LLVMRustCreateTargetMachine(const char *triple,
                             bool DataSections) {
     std::string Error;
     Triple Trip(Triple::normalize(triple));
+    printf("Trip: %s\n", Trip.str().c_str());
+    dumpTargets();
     const llvm::Target *TheTarget = TargetRegistry::lookupTarget(Trip.getTriple(),
                                                                  Error);
     if (TheTarget == NULL) {
