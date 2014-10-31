@@ -794,10 +794,13 @@ fn link_natively(sess: &Session, trans: &CrateTranslation, dylib: bool,
     // The invocations of cc share some flags across platforms
     let pname = get_cc_prog(sess);
     let mut cmd = Command::new(pname.as_slice());
+    debug!("{}", &cmd);
 
     cmd.args(sess.targ_cfg.target_strs.cc_args.as_slice());
+    debug!("{}", &cmd);
     link_args(&mut cmd, sess, dylib, tmpdir.path(),
               trans, obj_filename, out_filename);
+    debug!("{}", &cmd);
 
     if (sess.opts.debugging_opts & config::PRINT_LINK_ARGS) != 0 {
         println!("{}", &cmd);
@@ -1161,6 +1164,8 @@ fn add_local_native_libraries(cmd: &mut Command, sess: &Session) {
 
     let libs = sess.cstore.get_used_libraries();
     let libs = libs.borrow();
+
+    // println!("Used libs: {}", libs);
 
     let mut staticlibs = libs.iter().filter_map(|&(ref l, kind)| {
         if kind == cstore::NativeStatic {Some(l)} else {None}
