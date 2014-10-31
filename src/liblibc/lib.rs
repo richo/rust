@@ -511,7 +511,8 @@ pub mod types {
         #[cfg(any(target_arch = "x86",
                   target_arch = "arm",
                   target_arch = "mips",
-                  target_arch = "mipsel"))]
+                  target_arch = "mipsel",
+                  target_arch = "powerpc"))]
         pub mod arch {
             pub mod c95 {
                 pub type c_char = i8;

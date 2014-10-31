@@ -1785,6 +1785,11 @@ mod arch_consts {
     pub const ARCH: &'static str = "mipsel";
 }
 
+#[cfg(target_arch = "powerpc")]
+mod arch_consts {
+    pub const ARCH: &'static str = "powerpc";
+}
+
 #[cfg(test)]
 mod tests {
     use prelude::*;
