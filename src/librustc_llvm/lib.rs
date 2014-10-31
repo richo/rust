@@ -1897,6 +1897,11 @@ extern {
     pub fn LLVMInitializeMipsTargetMC();
     pub fn LLVMInitializeMipsAsmPrinter();
     pub fn LLVMInitializeMipsAsmParser();
+    pub fn LLVMInitializePowerPCTargetInfo();
+    pub fn LLVMInitializePowerPCTarget();
+    pub fn LLVMInitializePowerPCTargetMC();
+    pub fn LLVMInitializePowerPCAsmPrinter();
+    pub fn LLVMInitializePowerPCAsmParser();
 
     pub fn LLVMRustAddPass(PM: PassManagerRef, Pass: *const c_char) -> bool;
     pub fn LLVMRustCreateTargetMachine(Triple: *const c_char,
@@ -2165,6 +2170,12 @@ pub unsafe fn static_link_hack_this_sucks() {
     LLVMInitializeMipsTargetMC();
     LLVMInitializeMipsAsmPrinter();
     LLVMInitializeMipsAsmParser();
+
+    LLVMInitializePowerPCTargetInfo();
+    LLVMInitializePowerPCTarget();
+    LLVMInitializePowerPCTargetMC();
+    LLVMInitializePowerPCAsmPrinter();
+    LLVMInitializePowerPCAsmParser();
 
     LLVMRustSetLLVMOptions(0 as c_int,
                                        0 as *const _);
