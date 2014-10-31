@@ -1100,6 +1100,7 @@ fn add_local_native_libraries(cmd: &mut Command, sess: &Session) {
     }
 
     for &(ref l, kind) in others {
+        println!("using lib: {}", l);
         match kind {
             cstore::NativeUnknown => {
                 cmd.arg(format!("-l{}", l));
