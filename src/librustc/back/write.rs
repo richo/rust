@@ -232,12 +232,11 @@ fn create_target_machine(sess: &Session) -> TargetMachineRef {
             triple.with_c_str(|t| {
             sess.opts.cg.target_cpu.as_slice().with_c_str(|cpu| {
                 target_feature(sess).with_c_str(|features| {
-                    // Lawl :/
-            let t_ = CString::new(t, false);
-            let cpu_ = CString::new(cpu, false);
-            let features_ = CString::new(features, false);
 
-            println!("t: {} || cpu: {} || features: {}", t_, cpu_, features_);
+            // let t_ = CString::new(t, false);
+            // let cpu_ = CString::new(cpu, false);
+            // let features_ = CString::new(features, false);
+            // println!("t: {} || cpu: {} || features: {}", t_, cpu_, features_);
                     llvm::LLVMRustCreateTargetMachine(
                         t, cpu, features,
                         code_model,

@@ -99,7 +99,7 @@ LLVMRustCreateTargetMachine(const char *triple,
     std::string Error;
     Triple Trip(Triple::normalize(triple));
     printf("Trip: %s\n", Trip.str().c_str());
-    dumpTargets();
+    /* dumpTargets(); */
     const llvm::Target *TheTarget = TargetRegistry::lookupTarget(Trip.getTriple(),
                                                                  Error);
     if (TheTarget == NULL) {
