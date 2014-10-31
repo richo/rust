@@ -543,7 +543,8 @@ pub mod types {
             }
             #[cfg(any(target_arch = "x86",
                       target_arch = "mips",
-                      target_arch = "mipsel"))]
+                      target_arch = "mipsel",
+                      target_arch = "powerpc"))]
             pub mod posix88 {
                 pub type off_t = i32;
                 pub type dev_t = u64;
@@ -567,7 +568,8 @@ pub mod types {
                 pub type mode_t = u16;
                 pub type ssize_t = i32;
             }
-            #[cfg(target_arch = "x86")]
+            #[cfg(any(target_arch = "x86",
+                      target_arch = "powerpc"))]
             pub mod posix01 {
                 use types::os::arch::c95::{c_short, c_long, time_t};
                 use types::os::arch::posix88::{dev_t, gid_t, ino_t};
@@ -2433,7 +2435,8 @@ pub mod consts {
         }
         #[cfg(any(target_arch = "x86",
                   target_arch = "x86_64",
-                  target_arch = "arm"))]
+                  target_arch = "arm",
+                  target_arch = "powerpc"))]
         pub mod posix88 {
             use types::os::arch::c95::c_int;
             use types::common::c95::c_void;
@@ -2938,7 +2941,8 @@ pub mod consts {
         }
         #[cfg(any(target_arch = "arm",
                   target_arch = "x86",
-                  target_arch = "x86_64"))]
+                  target_arch = "x86_64",
+                  target_arch = "powerpc"))]
         pub mod bsd44 {
             use types::os::arch::c95::c_int;
 
@@ -3032,7 +3036,8 @@ pub mod consts {
         }
         #[cfg(any(target_arch = "x86",
                   target_arch = "x86_64",
-                  target_arch = "arm"))]
+                  target_arch = "arm",
+                  target_arch = "powerpc"))]
         pub mod extra {
             use types::os::arch::c95::c_int;
 
