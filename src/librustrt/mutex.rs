@@ -432,6 +432,8 @@ mod imp {
         const __SIZEOF_PTHREAD_COND_T: uint = 48 - 8;
         #[cfg(target_arch = "mipsel")]
         const __SIZEOF_PTHREAD_COND_T: uint = 48 - 8;
+        #[cfg(target_arch = "powerpc")]
+        const __SIZEOF_PTHREAD_COND_T: uint = 24 - 8;
 
         #[repr(C)]
         pub struct pthread_mutex_t {
