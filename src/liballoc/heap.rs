@@ -117,7 +117,8 @@ unsafe fn exchange_free(ptr: *mut u8, old_size: uint, align: uint) {
 // constant at the call site and the branch will be optimized out.
 #[cfg(any(target_arch = "arm",
           target_arch = "mips",
-          target_arch = "mipsel"))]
+          target_arch = "mipsel",
+          target_arch = "powerpc"))]
 const MIN_ALIGN: uint = 8;
 #[cfg(any(target_arch = "x86",
           target_arch = "x86_64"))]
