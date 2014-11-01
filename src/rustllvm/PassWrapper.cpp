@@ -98,7 +98,7 @@ LLVMRustCreateTargetMachine(const char *triple,
                             bool DataSections) {
     std::string Error;
     Triple Trip(Triple::normalize(triple));
-    printf("Trip: %s\n", Trip.str().c_str());
+    /* printf("Trip: %s\n", Trip.str().c_str()); */
     /* dumpTargets(); */
     const llvm::Target *TheTarget = TargetRegistry::lookupTarget(Trip.getTriple(),
                                                                  Error);
@@ -130,7 +130,7 @@ LLVMRustCreateTargetMachine(const char *triple,
     TM->setDataSections(DataSections);
     TM->setFunctionSections(FunctionSections);
 
-    fprintf(stderr, "Got a TM at %p\n", TM);
+    /* fprintf(stderr, "Got a TM at %p\n", TM); */
 
     return wrap(TM);
 }
