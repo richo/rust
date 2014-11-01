@@ -77,6 +77,9 @@ pub const unwinder_private_data_size: uint = 5;
 #[cfg(any(target_arch = "mips", target_arch = "mipsel"))]
 pub const unwinder_private_data_size: uint = 2;
 
+#[cfg(target_arch = "powerpc")]
+pub const unwinder_private_data_size: uint = 5;
+
 #[repr(C)]
 pub struct _Unwind_Exception {
     pub exception_class: _Unwind_Exception_Class,
