@@ -230,6 +230,11 @@ pub unsafe fn record_sp_limit(limit: uint) {
     #[cfg(all(target_arch = "arm", target_os = "ios"))] #[inline(always)]
     unsafe fn target_record_sp_limit(_: uint) {
     }
+
+    // powerpc segmented stack is disabled for now, wingin it like a champ
+    #[cfg(all(target_arch = "powerpc", target_os = "linux"))] #[inline(always)]
+    unsafe fn target_record_sp_limit(_: uint) {
+    }
 }
 
 /// The counterpart of the function above, this function will fetch the current
@@ -301,10 +306,11 @@ pub unsafe fn get_sp_limit() -> uint {
         return 1024;
     }
 
-    // mips, arm - Some brave soul can port these to inline asm, but it's over
+    // mips, arm, powerpc - Some brave soul can port these to inline asm, but it's over
     //             my head personally
     #[cfg(any(target_arch = "mips",
               target_arch = "mipsel",
+              target_arch = "powerpc",
               all(target_arch = "arm", not(target_os = "ios"))))]
     #[inline(always)]
     unsafe fn target_get_sp_limit() -> uint {
