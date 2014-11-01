@@ -2914,7 +2914,8 @@ pub mod consts {
             #[cfg(all(target_os = "linux",
                       any(target_arch = "arm",
                           target_arch = "x86",
-                          target_arch = "x86_64")))]
+                          target_arch = "x86_64",
+                          target_arch = "powerpc")))]
             pub const PTHREAD_STACK_MIN: size_t = 16384;
 
             #[cfg(all(target_os = "linux",
