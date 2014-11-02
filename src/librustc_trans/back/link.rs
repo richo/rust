@@ -1076,7 +1076,7 @@ fn add_local_native_libraries(cmd: &mut Command, sess: &Session) {
     // reference them. This can occur for libraries which are just providing
     // bindings, libraries with generic functions, etc.
     if takes_hints {
-        cmd.arg("-Wl,--whole-archive").arg("-Wl,-Bstatic");
+        cmd.arg("-Wl,-Bstatic");
     }
     let search_path = archive_search_paths(sess);
     for l in staticlibs {
@@ -1096,7 +1096,7 @@ fn add_local_native_libraries(cmd: &mut Command, sess: &Session) {
         }
     }
     if takes_hints {
-        cmd.arg("-Wl,--no-whole-archive").arg("-Wl,-Bdynamic");
+        cmd.arg("-Wl,-Bdynamic");
     }
 
     for &(ref l, kind) in others {
