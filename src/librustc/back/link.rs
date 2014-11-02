@@ -951,10 +951,10 @@ fn link_args(cmd: &mut Command,
 
         // GNU-style linkers support optimization with -O. GNU ld doesn't need a
         // numeric argument, but other linkers do.
-        if sess.opts.optimize == config::Default ||
-           sess.opts.optimize == config::Aggressive {
-            cmd.arg("-Wl,-O1");
-        }
+        // if sess.opts.optimize == config::Default ||
+        //    sess.opts.optimize == config::Aggressive {
+        //     cmd.arg("-Wl,-O1");
+        // }
     } else if sess.targ_cfg.os == abi::OsMacos || sess.targ_cfg.os == abi::OsiOS {
         // The dead_strip option to the linker specifies that functions and data
         // unreachable by the entry point will be removed. This is quite useful
