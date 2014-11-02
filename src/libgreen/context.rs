@@ -216,6 +216,7 @@ fn new_regs() -> Box<Registers> {
 }
 
 #[cfg(target_arch = "powerpc")]
+#[allow(unused_variables)]
 fn initialize_call_frame(regs: &mut Registers, fptr: InitFn, arg: uint,
                          procedure: raw::Procedure, sp: *mut uint) {
     // YOLO
@@ -347,6 +348,7 @@ fn initialize_call_frame(regs: &mut Registers, fptr: InitFn, arg: uint,
     regs[31] = fptr as libc::uintptr_t;
 }
 
+#[allow(dead_code)]
 fn align_down(sp: *mut uint) -> *mut uint {
     let sp = (sp as uint) & !(16 - 1);
     sp as *mut uint
