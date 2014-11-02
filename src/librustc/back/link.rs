@@ -890,8 +890,7 @@ fn link_args(cmd: &mut Command,
             cmd.arg(v.as_slice());
         }
         _ => {
-            cmd.args(["-Wl,--whole-archive", "-lmorestack",
-                      "-Wl,--no-whole-archive"]);
+            cmd.args(["-lmorestack" ]);
         }
     }
 
@@ -947,7 +946,8 @@ fn link_args(cmd: &mut Command,
         // GNU-style linkers will use this to omit linking to libraries which
         // don't actually fulfill any relocations, but only for libraries which
         // follow this flag. Thus, use it before specifying libraries to link to.
-        cmd.arg("-Wl,--as-needed");
+        // Delurk this again because lolos
+        // cmd.arg("-Wl,--as-needed");
 
         // GNU-style linkers support optimization with -O. GNU ld doesn't need a
         // numeric argument, but other linkers do.
@@ -1159,8 +1159,12 @@ fn add_local_native_libraries(cmd: &mut Command, sess: &Session) {
     // For those that support this, we ensure we pass the option if the library
     // was flagged "static" (most defaults are dynamic) to ensure that if
     // libfoo.a and libfoo.so both exist that the right one is chosen.
+    // Nerf this to be false all the time, otherwise everything breaks when you target linux from
+    // macos
     let takes_hints = sess.targ_cfg.os != abi::OsMacos &&
-                      sess.targ_cfg.os != abi::OsiOS;
+                      sess.targ_cfg.os != abi::OsiOS &&
+                      false;
+
 
     let libs = sess.cstore.get_used_libraries();
     let libs = libs.borrow();
@@ -1183,7 +1187,7 @@ fn add_local_native_libraries(cmd: &mut Command, sess: &Session) {
     // reference them. This can occur for libraries which are just providing
     // bindings, libraries with generic functions, etc.
     if takes_hints {
-        cmd.arg("-Wl,--whole-archive").arg("-Wl,-Bstatic");
+        cmd.arg("-Wl,-Bstatic");
     }
     let search_path = archive_search_paths(sess);
     for l in staticlibs {
@@ -1202,7 +1206,7 @@ fn add_local_native_libraries(cmd: &mut Command, sess: &Session) {
         }
     }
     if takes_hints {
-        cmd.arg("-Wl,--no-whole-archive").arg("-Wl,-Bdynamic");
+        cmd.arg("-Wl,-Bdynamic");
     }
 
     for &(ref l, kind) in others {
