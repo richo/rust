@@ -27,7 +27,8 @@ pub const FIONBIO: libc::c_ulong = 0x8004667e;
 #[cfg(any(all(target_os = "linux",
               any(target_arch = "x86",
                   target_arch = "x86_64",
-                  target_arch = "arm")),
+                  target_arch = "arm",
+                  target_arch = "powerpc")),
           target_os = "android"))]
 pub const FIONBIO: libc::c_ulong = 0x5421;
 #[cfg(all(target_os = "linux",
@@ -42,7 +43,8 @@ pub const FIOCLEX: libc::c_ulong = 0x20006601;
 #[cfg(any(all(target_os = "linux",
               any(target_arch = "x86",
                   target_arch = "x86_64",
-                  target_arch = "arm")),
+                  target_arch = "arm",
+                  target_arch = "powerpc")),
           target_os = "android"))]
 pub const FIOCLEX: libc::c_ulong = 0x5451;
 #[cfg(all(target_os = "linux",
@@ -175,7 +177,9 @@ mod signal {
 }
 
 #[cfg(all(target_os = "linux",
-          any(target_arch = "mips", target_arch = "mipsel")))]
+          any(target_arch = "mips",
+              target_arch = "mipsel",
+              target_arch = "powerpc")))]
 mod signal {
     use libc;
 
