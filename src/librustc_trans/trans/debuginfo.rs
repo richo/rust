@@ -702,7 +702,7 @@ enum VariableAccess<'a> {
     DirectVariable { alloca: ValueRef },
     // The llptr given is an alloca containing the start of some pointer chain
     // leading to the variable's content.
-    IndirectVariable { alloca: ValueRef, address_operations: &'a [ValueRef] }
+    IndirectVariable { alloca: ValueRef, address_operations: &'a [i64] }
 }
 
 enum VariableKind {
@@ -928,10 +928,10 @@ pub fn create_captured_var_metadata<'blk, 'tcx>(bcx: Block<'blk, 'tcx>,
                                                               env_index);
 
     let address_operations = unsafe {
-        [llvm::LLVMDIBuilderCreateOpDeref(Type::i64(cx).to_ref()),
-         llvm::LLVMDIBuilderCreateOpPlus(Type::i64(cx).to_ref()),
-         C_i64(cx, byte_offset_of_var_in_env as i64),
-         llvm::LLVMDIBuilderCreateOpDeref(Type::i64(cx).to_ref())]
+        [llvm::LLVMDIBuilderOpDeref(),
+         llvm::LLVMDIBuilderOpPlus(),
+         byte_offset_of_var_in_env as i64,
+         llvm::LLVMDIBuilderOpDeref()]
     };
 
     let address_op_count = if captured_by_ref {
@@ -969,7 +969,7 @@ pub fn create_match_binding_metadata<'blk, 'tcx>(bcx: Block<'blk, 'tcx>,
 
     let scope_metadata = scope_metadata(bcx.fcx, binding.id, binding.span);
     let aops = unsafe {
-        [llvm::LLVMDIBuilderCreateOpDeref(bcx.ccx().int_type().to_ref())]
+        [llvm::LLVMDIBuilderOpDeref()]
     };
     // Regardless of the actual type (`T`) we're always passed the stack slot (alloca)
     // for the binding. For ByRef bindings that's a `T*` but for ByMove bindings we
@@ -1719,17 +1719,10 @@ fn declare_local<'blk, 'tcx>(bcx: Block<'blk, 'tcx>,
         IndirectVariable { alloca, address_operations } => (
             alloca,
             unsafe {
-                llvm::LLVMDIBuilderCreateComplexVariable(
+                llvm::LLVMDIBuilderCreateExpression(
                     DIB(cx),
-                    dwarf_tag,
-                    scope_metadata,
-                    name.as_ptr(),
-                    file_metadata,
-                    loc.line as c_uint,
-                    type_metadata,
                     address_operations.as_ptr(),
-                    address_operations.len() as c_uint,
-                    argument_index)
+                    address_operations.len() as c_uint)
             }
         )
     };
@@ -2654,10 +2647,11 @@ fn set_members_of_composite_type(cx: &CrateContext,
                                  composite_llvm_type: Type,
                                  member_descriptions: &[MemberDescription]) {
     // In some rare cases LLVM metadata uniquing would lead to an existing type
-    // description being used instead of a new one created in create_struct_stub.
-    // This would cause a hard to trace assertion in DICompositeType::SetTypeArray().
-    // The following check makes sure that we get a better error message if this
-    // should happen again due to some regression.
+    // description being used instead of a new one created in
+    // create_struct_stub.  This would cause a hard to trace assertion in
+    // DICompositeType::SetTypeArray().  The following check makes sure that we
+    // get a better error message if this should happen again due to some
+    // regression.
     {
         let mut composite_types_completed =
             debug_context(cx).composite_types_completed.borrow_mut();
@@ -3151,7 +3145,7 @@ fn set_debug_location(cx: &CrateContext, debug_location: InternalDebugLocation) 
             let col = UNKNOWN_COLUMN_NUMBER;
             debug!("setting debug location to {} {}", line, col);
             let elements = [C_i32(cx, line as i32), C_i32(cx, col as i32),
-                            scope, ptr::null_mut()];
+                            scope as ValueRef, ptr::null_mut()];
             unsafe {
                 metadata_node = llvm::LLVMMDNodeInContext(debug_context(cx).llcontext,
                                                           elements.as_ptr(),
