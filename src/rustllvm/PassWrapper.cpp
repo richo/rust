@@ -14,7 +14,7 @@
 
 #include "llvm/Support/CBindingWrapping.h"
 #include "llvm/Support/FileSystem.h"
-#include "llvm/Target/TargetLibraryInfo.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 
 #include "llvm-c/Transforms/PassManagerBuilder.h"
@@ -137,10 +137,10 @@ LLVMRustAddBuilderLibraryInfo(LLVMPassManagerBuilderRef PMB,
                               LLVMModuleRef M,
                               bool DisableSimplifyLibCalls) {
     Triple TargetTriple(unwrap(M)->getTargetTriple());
-    TargetLibraryInfo *TLI = new TargetLibraryInfo(TargetTriple);
+    TargetLibraryInfoImpl *TLII = new TargetLibraryInfoImpl(TargetTriple);
     if (DisableSimplifyLibCalls)
-      TLI->disableAllFunctions();
-    unwrap(PMB)->LibraryInfo = TLI;
+      TLII->disableAllFunctions();
+    unwrap(PMB)->LibraryInfo = TLII;
 }
 
 // Unfortunately, the LLVM C API doesn't provide a way to create the
@@ -150,10 +150,10 @@ LLVMRustAddLibraryInfo(LLVMPassManagerRef PMB,
                        LLVMModuleRef M,
                        bool DisableSimplifyLibCalls) {
     Triple TargetTriple(unwrap(M)->getTargetTriple());
-    TargetLibraryInfo *TLI = new TargetLibraryInfo(TargetTriple);
+    TargetLibraryInfoImpl TLII(TargetTriple);
     if (DisableSimplifyLibCalls)
-      TLI->disableAllFunctions();
-    unwrap(PMB)->add(TLI);
+      TLII.disableAllFunctions();
+    unwrap(PMB)->add(new TargetLibraryInfoWrapperPass(TLII));
 }
 
 // Unfortunately, the LLVM C API doesn't provide an easy way of iterating over

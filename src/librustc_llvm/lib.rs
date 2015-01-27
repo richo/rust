@@ -513,6 +513,7 @@ pub mod debuginfo {
     pub type DIDerivedType = DIType;
     pub type DICompositeType = DIDerivedType;
     pub type DIVariable = DIDescriptor;
+    pub type DIExpression = DIDescriptor;
     pub type DIGlobalVariable = DIDescriptor;
     pub type DIArray = DIDescriptor;
     pub type DISubrange = DIDescriptor;
@@ -1876,6 +1877,7 @@ extern {
     pub fn LLVMDIBuilderInsertDeclareAtEnd(Builder: DIBuilderRef,
                                            Val: ValueRef,
                                            VarInfo: DIVariable,
+                                           Expr: DIExpression,
                                            InsertAtEnd: BasicBlockRef)
                                            -> ValueRef;
 
