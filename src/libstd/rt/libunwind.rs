@@ -82,7 +82,7 @@ pub const unwinder_private_data_size: uint = 2;
 pub const unwinder_private_data_size: uint = 2;
 
 #[cfg(target_arch = "powerpc")]
-pub const unwinder_private_data_size: uint = 2;
+pub const unwinder_private_data_size: uint = 4;
 
 #[repr(C)]
 pub struct _Unwind_Exception {
