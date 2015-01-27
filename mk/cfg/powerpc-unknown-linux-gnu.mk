@@ -8,10 +8,10 @@ CFG_LIB_NAME_powerpc-unknown-linux-gnu=lib$(1).so
 CFG_STATIC_LIB_NAME_powerpc-unknown-linux-gnu=lib$(1).a
 CFG_LIB_GLOB_powerpc-unknown-linux-gnu=lib$(1)-*.so
 CFG_LIB_DSYM_GLOB_powerpc-unknown-linux-gnu=lib$(1)-*.dylib.dSYM
-CFG_CFLAGS_powerpc-unknown-linux-gnu := -m32 $(CFLAGS)
-CFG_GCCISH_CFLAGS_powerpc-unknown-linux-gnu := -Wall -Werror -g -fPIC -m32 $(CFLAGS)
+CFG_CFLAGS_powerpc-unknown-linux-gnu := $(CFLAGS)
+CFG_GCCISH_CFLAGS_powerpc-unknown-linux-gnu := -Wall -Werror -g -fPIC $(CFLAGS)
 CFG_GCCISH_CXXFLAGS_powerpc-unknown-linux-gnu := -fno-rtti $(CXXFLAGS)
-CFG_GCCISH_LINK_FLAGS_powerpc-unknown-linux-gnu := -shared -fPIC -ldl -pthread  -lrt -g -m32
+CFG_GCCISH_LINK_FLAGS_powerpc-unknown-linux-gnu := -shared -fPIC -ldl -pthread  -lrt -g
 CFG_GCCISH_DEF_FLAG_powerpc-unknown-linux-gnu := -Wl,--export-dynamic,--dynamic-list=
 CFG_GCCISH_PRE_LIB_FLAGS_powerpc-unknown-linux-gnu := -Wl,-whole-archive
 CFG_GCCISH_POST_LIB_FLAGS_powerpc-unknown-linux-gnu := -Wl,-no-whole-archive
