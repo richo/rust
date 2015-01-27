@@ -83,7 +83,7 @@ extern "C" LLVMExecutionEngineRef LLVMBuildExecutionEngine(
     InitializeNativeTargetAsmParser();
 
     std::unique_ptr<Module> m(unwrap(mod));
-    RustJITMemoryManager *mm = unwrap(mref);
+    std::unique_ptr<RustJITMemoryManager> mm(unwrap(mref));
 
     std::string error_str;
     TargetOptions options;
@@ -94,7 +94,7 @@ extern "C" LLVMExecutionEngineRef LLVMBuildExecutionEngine(
     ExecutionEngine *ee = EngineBuilder(std::move(m))
         .setEngineKind(EngineKind::JIT)
         .setErrorStr(&error_str)
-        .setMCJITMemoryManager(mm)
+        .setMCJITMemoryManager(std::move(mm))
         .setTargetOptions(options)
         .create();
 
