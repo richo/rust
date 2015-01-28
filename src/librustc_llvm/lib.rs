@@ -493,7 +493,7 @@ pub enum SMDiagnostic_opaque {}
 pub type SMDiagnosticRef = *mut SMDiagnostic_opaque;
 #[allow(missing_copy_implementations)]
 pub enum Metadata_opaque {}
-pub type MetadataRef = *mut SMDiagnostic_opaque;
+pub type MetadataRef = *mut Metadata_opaque;
 
 pub type DiagnosticHandler = unsafe extern "C" fn(DiagnosticInfoRef, *mut c_void);
 pub type InlineAsmDiagHandler = unsafe extern "C" fn(SMDiagnosticRef, *const c_void, c_uint);
