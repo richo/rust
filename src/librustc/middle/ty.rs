@@ -53,6 +53,7 @@ use middle::mem_categorization as mc;
 use middle::region;
 use middle::resolve_lifetime;
 use middle::infer;
+use middle::privacy;
 use middle::stability;
 use middle::subst::{self, Subst, Substs, VecPerParamSpace};
 use middle::traits;
@@ -825,6 +826,17 @@ pub struct ctxt<'tcx> {
 
     /// Caches whether traits are object safe
     pub object_safety_cache: RefCell<DefIdMap<bool>>,
+
+    /// This is a list of all exported items in the AST. An exported item is any
+    /// function/method/item which is usable by external crates. This essentially
+    /// means that the result is "public all the way down", but the "path down"
+    /// may jump across private boundaries through reexport statements.
+    pub exported_items: RefCell<privacy::ExportedItems>,
+
+    /// These two fields are closely related to one another in that they are only
+    /// used for generation of the 'PublicItems' set, not for privacy checking at
+    /// all
+    pub public_items: RefCell<privacy::PublicItems>,
 }
 
 // Flags that we track on types. These flags are propagated upwards
@@ -2414,6 +2426,8 @@ pub fn mk_ctxt<'tcx>(s: Session,
         type_impls_copy_cache: RefCell::new(HashMap::new()),
         type_impls_sized_cache: RefCell::new(HashMap::new()),
         object_safety_cache: RefCell::new(DefIdMap()),
+        exported_items: RefCell::new(NodeSet()),
+        public_items: RefCell::new(NodeSet()),
    }
 }
 

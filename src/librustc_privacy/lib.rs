@@ -158,12 +158,6 @@ struct EmbargoVisitor<'a, 'tcx: 'a> {
     // to true if a reexported module is entered (or an action similar).
     prev_exported: bool,
 
-    // This is a list of all exported items in the AST. An exported item is any
-    // function/method/item which is usable by external crates. This essentially
-    // means that the result is "public all the way down", but the "path down"
-    // may jump across private boundaries through reexport statements.
-    exported_items: ExportedItems,
-
     // This sets contains all the destination nodes which are publicly
     // re-exported. This is *not* a set of all reexported nodes, only a set of
     // all nodes which are reexported *and* reachable from external crates. This
@@ -171,10 +165,8 @@ struct EmbargoVisitor<'a, 'tcx: 'a> {
     // destination must also be exported.
     reexports: NodeSet,
 
-    // These two fields are closely related to one another in that they are only
-    // used for generation of the 'PublicItems' set, not for privacy checking at
-    // all
-    public_items: PublicItems,
+    // This field is only used for generation of the 'PublicItems' set, not for
+    // privacy checking at all
     prev_public: bool,
 }
 
@@ -200,7 +192,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for EmbargoVisitor<'a, 'tcx> {
         let orig_all_pub = self.prev_public;
         self.prev_public = orig_all_pub && item.vis == ast::Public;
         if self.prev_public {
-            self.public_items.insert(item.id);
+            self.tcx.public_items.insert(item.id);
         }
 
         let orig_all_exported = self.prev_exported;
@@ -225,14 +217,14 @@ impl<'a, 'tcx, 'v> Visitor<'v> for EmbargoVisitor<'a, 'tcx> {
         }
 
         let public_first = self.prev_exported &&
-                           self.exported_items.insert(item.id);
+                           self.tcx.exported_items.insert(item.id);
 
         match item.node {
             // Enum variants inherit from their parent, so if the enum is
             // public all variants are public unless they're explicitly priv
             ast::ItemEnum(ref def, _) if public_first => {
                 for variant in def.variants.iter() {
-                    self.exported_items.insert(variant.node.id);
+                    self.tcx.exported_items.insert(variant.node.id);
                 }
             }
 
@@ -263,7 +255,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for EmbargoVisitor<'a, 'tcx> {
                             def => {
                                 let did = def.def_id();
                                 !is_local(did) ||
-                                 self.exported_items.contains(&did.node)
+                                 self.tcx.exported_items.contains(&did.node)
                             }
                         }
                     }
@@ -272,7 +264,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for EmbargoVisitor<'a, 'tcx> {
                 let tr = ty::impl_trait_ref(self.tcx, local_def(item.id));
                 let public_trait = tr.clone().map_or(false, |tr| {
                     !is_local(tr.def_id) ||
-                     self.exported_items.contains(&tr.def_id.node)
+                     self.tcx.exported_items.contains(&tr.def_id.node)
                 });
 
                 if public_ty || public_trait {
@@ -285,7 +277,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for EmbargoVisitor<'a, 'tcx> {
                                         _ => true,
                                     } && method.pe_vis() == ast::Public;
                                 if meth_public || tr.is_some() {
-                                    self.exported_items.insert(method.id);
+                                    self.tcx.exported_items.insert(method.id);
                                 }
                             }
                             ast::TypeImplItem(_) => {}
@@ -301,15 +293,15 @@ impl<'a, 'tcx, 'v> Visitor<'v> for EmbargoVisitor<'a, 'tcx> {
                     match *method {
                         ast::ProvidedMethod(ref m) => {
                             debug!("provided {}", m.id);
-                            self.exported_items.insert(m.id);
+                            self.tcx.exported_items.insert(m.id);
                         }
                         ast::RequiredMethod(ref m) => {
                             debug!("required {}", m.id);
-                            self.exported_items.insert(m.id);
+                            self.tcx.exported_items.insert(m.id);
                         }
                         ast::TypeTraitItem(ref t) => {
                             debug!("typedef {}", t.ty_param.id);
-                            self.exported_items.insert(t.ty_param.id);
+                            self.tcx.exported_items.insert(t.ty_param.id);
                         }
                     }
                 }
@@ -318,7 +310,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for EmbargoVisitor<'a, 'tcx> {
             // Struct constructors are public if the struct is all public.
             ast::ItemStruct(ref def, _) if public_first => {
                 match def.ctor_id {
-                    Some(id) => { self.exported_items.insert(id); }
+                    Some(id) => { self.tcx.exported_items.insert(id); }
                     None => {}
                 }
             }
@@ -330,7 +322,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for EmbargoVisitor<'a, 'tcx> {
                         def => {
                             let did = def.def_id();
                             if is_local(did) {
-                                self.exported_items.insert(did.node);
+                                self.tcx.exported_items.insert(did.node);
                             }
                         }
                     }
@@ -348,7 +340,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for EmbargoVisitor<'a, 'tcx> {
 
     fn visit_foreign_item(&mut self, a: &ast::ForeignItem) {
         if (self.prev_exported && a.vis == ast::Public) || self.reexports.contains(&a.id) {
-            self.exported_items.insert(a.id);
+            self.tcx.exported_items.insert(a.id);
         }
     }
 
@@ -1208,8 +1200,6 @@ impl<'a, 'tcx> SanePrivacyVisitor<'a, 'tcx> {
 
 struct VisiblePrivateTypesVisitor<'a, 'tcx: 'a> {
     tcx: &'a ty::ctxt<'tcx>,
-    exported_items: &'a ExportedItems,
-    public_items: &'a PublicItems,
     in_variant: bool,
 }
 
@@ -1247,7 +1237,7 @@ impl<'a, 'tcx> VisiblePrivateTypesVisitor<'a, 'tcx> {
     fn trait_is_public(&self, trait_id: ast::NodeId) -> bool {
         // FIXME: this would preferably be using `exported_items`, but all
         // traits are exported currently (see `EmbargoVisitor.exported_trait`)
-        self.public_items.contains(&trait_id)
+        self.tcx.public_items.contains(&trait_id)
     }
 
     fn check_ty_param_bound(&self,
@@ -1355,7 +1345,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for VisiblePrivateTypesVisitor<'a, 'tcx> {
                               .any(|impl_item| {
                                   match *impl_item {
                                       ast::MethodImplItem(ref m) => {
-                                          self.exported_items.contains(&m.id)
+                                          self.tcx.exported_items.contains(&m.id)
                                       }
                                       ast::TypeImplItem(_) => false,
                                   }
@@ -1403,7 +1393,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for VisiblePrivateTypesVisitor<'a, 'tcx> {
                             ast::MethodImplItem(ref method) => {
                                 if method.pe_explicit_self().node ==
                                         ast::SelfStatic &&
-                                        self.exported_items
+                                        self.tcx.exported_items
                                             .contains(&method.id) {
                                     found_pub_static = true;
                                     visit::walk_method_helper(self, &**method);
@@ -1424,7 +1414,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for VisiblePrivateTypesVisitor<'a, 'tcx> {
             ast::ItemTy(..) => return,
 
             // not at all public, so we don't care
-            _ if !self.exported_items.contains(&item.id) => return,
+            _ if !self.tcx.exported_items.contains(&item.id) => return,
 
             _ => {}
         }
@@ -1458,7 +1448,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for VisiblePrivateTypesVisitor<'a, 'tcx> {
     }
 
     fn visit_foreign_item(&mut self, item: &ast::ForeignItem) {
-        if self.exported_items.contains(&item.id) {
+        if self.tcx.exported_items.contains(&item.id) {
             visit::walk_foreign_item(self, item)
         }
     }
@@ -1466,7 +1456,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for VisiblePrivateTypesVisitor<'a, 'tcx> {
     fn visit_fn(&mut self, fk: visit::FnKind<'v>, fd: &'v ast::FnDecl,
                 b: &'v ast::Block, s: Span, id: ast::NodeId) {
         // needs special handling for methods.
-        if self.exported_items.contains(&id) {
+        if self.tcx.exported_items.contains(&id) {
             visit::walk_fn(self, fk, fd, b, s);
         }
     }
@@ -1483,7 +1473,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for VisiblePrivateTypesVisitor<'a, 'tcx> {
     }
 
     fn visit_variant(&mut self, v: &ast::Variant, g: &ast::Generics) {
-        if self.exported_items.contains(&v.node.id) {
+        if self.tcx.exported_items.contains(&v.node.id) {
             self.in_variant = true;
             visit::walk_variant(self, v, g);
             self.in_variant = false;
@@ -1511,8 +1501,7 @@ impl<'a, 'tcx, 'v> Visitor<'v> for VisiblePrivateTypesVisitor<'a, 'tcx> {
 pub fn check_crate(tcx: &ty::ctxt,
                    export_map: &def::ExportMap,
                    external_exports: ExternalExports,
-                   last_private_map: LastPrivateMap)
-                   -> (ExportedItems, PublicItems) {
+                   last_private_map: LastPrivateMap) {
     let krate = tcx.map.krate();
 
     // Figure out who everyone's parent is
@@ -1547,8 +1536,6 @@ pub fn check_crate(tcx: &ty::ctxt,
     // items which are reachable from external crates based on visibility.
     let mut visitor = EmbargoVisitor {
         tcx: tcx,
-        exported_items: NodeSet(),
-        public_items: NodeSet(),
         reexports: NodeSet(),
         export_map: export_map,
         prev_exported: true,
@@ -1562,16 +1549,9 @@ pub fn check_crate(tcx: &ty::ctxt,
         }
     }
 
-    let EmbargoVisitor { exported_items, public_items, .. } = visitor;
-
-    {
-        let mut visitor = VisiblePrivateTypesVisitor {
-            tcx: tcx,
-            exported_items: &exported_items,
-            public_items: &public_items,
-            in_variant: false,
-        };
-        visit::walk_crate(&mut visitor, krate);
-    }
-    return (exported_items, public_items);
+    let mut visitor = VisiblePrivateTypesVisitor {
+        tcx: tcx,
+        in_variant: false,
+    };
+    visit::walk_crate(&mut visitor, krate);
 }

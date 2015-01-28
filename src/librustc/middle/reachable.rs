@@ -17,7 +17,6 @@
 
 use middle::def;
 use middle::ty;
-use middle::privacy;
 use session::config;
 use util::nodemap::NodeSet;
 
@@ -361,9 +360,7 @@ impl<'a, 'tcx> ReachableContext<'a, 'tcx> {
     }
 }
 
-pub fn find_reachable(tcx: &ty::ctxt,
-                      exported_items: &privacy::ExportedItems)
-                      -> NodeSet {
+pub fn find_reachable(tcx: &ty::ctxt) -> NodeSet {
     let mut reachable_context = ReachableContext::new(tcx);
 
     // Step 1: Seed the worklist with all nodes which were found to be public as
@@ -371,7 +368,7 @@ pub fn find_reachable(tcx: &ty::ctxt,
     //         other crates link to us, they're going to expect to be able to
     //         use the lang items, so we need to be sure to mark them as
     //         exported.
-    for id in exported_items.iter() {
+    for id in tcx.exported_items.borrow().iter() {
         reachable_context.worklist.push(*id);
     }
     for (_, item) in tcx.lang_items.items() {

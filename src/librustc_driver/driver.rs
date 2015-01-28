@@ -629,9 +629,8 @@ pub fn phase_3_run_analysis_passes<'tcx>(sess: Session,
          middle::check_const::check_crate(&ty_cx));
 
     let maps = (external_exports, last_private_map);
-    let (exported_items, public_items) =
-            time(time_passes, "privacy checking", maps, |(a, b)|
-                 rustc_privacy::check_crate(&ty_cx, &export_map, a, b));
+    time(time_passes, "privacy checking", maps, |(a, b)|
+         rustc_privacy::check_crate(&ty_cx, &export_map, a, b));
 
     time(time_passes, "intrinsic checking", (), |_|
          middle::intrinsicck::check_crate(&ty_cx));
@@ -660,22 +659,18 @@ pub fn phase_3_run_analysis_passes<'tcx>(sess: Session,
 
     let reachable_map =
         time(time_passes, "reachability checking", (), |_|
-             reachable::find_reachable(&ty_cx, &exported_items));
+             reachable::find_reachable(&ty_cx));
 
     time(time_passes, "death checking", (), |_| {
-        middle::dead::check_crate(&ty_cx,
-                                  &exported_items,
-                                  &reachable_map)
+        middle::dead::check_crate(&ty_cx, &reachable_map)
     });
 
     time(time_passes, "lint checking", (), |_|
-         lint::check_crate(&ty_cx, &exported_items));
+         lint::check_crate(&ty_cx));
 
     ty::CrateAnalysis {
         export_map: export_map,
         ty_cx: ty_cx,
-        exported_items: exported_items,
-        public_items: public_items,
         reachable: reachable_map,
         name: name,
         glob_map: glob_map,

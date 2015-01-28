@@ -592,11 +592,10 @@ impl<'a, 'tcx, 'v> Visitor<'v> for DeadVisitor<'a, 'tcx> {
     }
 }
 
-pub fn check_crate(tcx: &ty::ctxt,
-                   exported_items: &privacy::ExportedItems,
-                   reachable_symbols: &NodeSet) {
+pub fn check_crate(tcx: &ty::ctxt, reachable_symbols: &NodeSet) {
+    let exported_items = tcx.exported_items.borrow();
     let krate = tcx.map.krate();
-    let live_symbols = find_live(tcx, exported_items,
+    let live_symbols = find_live(tcx, &*exported_items,
                                  reachable_symbols, krate);
     let mut visitor = DeadVisitor { tcx: tcx, live_symbols: live_symbols };
     visit::walk_crate(&mut visitor, krate);
