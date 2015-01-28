@@ -228,14 +228,19 @@ extern "C" LLVMValueRef LLVMInlineAsm(LLVMTypeRef Ty,
 }
 
 typedef DIBuilder* DIBuilderRef;
+typedef struct LLVMOpaqueMetadata *LLVMMetadataRef;
+
+namespace llvm {
+DEFINE_ISA_CONVERSION_FUNCTIONS(Metadata, LLVMMetadataRef)
 
 template<typename DIT>
-DIT unwrapDI(LLVMValueRef ref) {
-    return DIT(ref ? unwrap<MDNode>(ref) : NULL);
+DIT unwrapDI(LLVMMetadataRef ref) {
+    return ref ? DIT(unwrap<MDNode>(ref)) : DIT();
+}
 }
 
-static LLVMValueRef wrapDI(DIDescriptor N) {
-    return wrap(MetadataAsValue::get(N->getContext(), N));
+inline Metadata **unwrap(LLVMMetadataRef *Vals) {
+    return reinterpret_cast<Metadata**>(Vals);
 }
 
 #if LLVM_VERSION_MINOR >= 5
@@ -262,7 +267,7 @@ extern "C" void LLVMDIBuilderFinalize(DIBuilderRef Builder) {
     Builder->finalize();
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateCompileUnit(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateCompileUnit(
     DIBuilderRef Builder,
     unsigned Lang,
     const char* File,
@@ -272,7 +277,7 @@ extern "C" LLVMValueRef LLVMDIBuilderCreateCompileUnit(
     const char* Flags,
     unsigned RuntimeVer,
     const char* SplitName) {
-    return wrapDI(Builder->createCompileUnit(Lang,
+    return wrap(Builder->createCompileUnit(Lang,
                                            File,
                                            Dir,
                                            Producer,
@@ -282,18 +287,18 @@ extern "C" LLVMValueRef LLVMDIBuilderCreateCompileUnit(
                                            SplitName));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateFile(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateFile(
     DIBuilderRef Builder,
     const char* Filename,
     const char* Directory) {
-    return wrapDI(Builder->createFile(Filename, Directory));
+    return wrap(Builder->createFile(Filename, Directory));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateSubroutineType(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateSubroutineType(
     DIBuilderRef Builder,
-    LLVMValueRef File,
-    LLVMValueRef ParameterTypes) {
-    return wrapDI(Builder->createSubroutineType(
+    LLVMMetadataRef File,
+    LLVMMetadataRef ParameterTypes) {
+    return wrap(Builder->createSubroutineType(
         unwrapDI<DIFile>(File),
 #if LLVM_VERSION_MINOR >= 6
         unwrapDI<DITypeArray>(ParameterTypes)));
@@ -302,23 +307,23 @@ extern "C" LLVMValueRef LLVMDIBuilderCreateSubroutineType(
 #endif
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateFunction(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateFunction(
     DIBuilderRef Builder,
-    LLVMValueRef Scope,
+    LLVMMetadataRef Scope,
     const char* Name,
     const char* LinkageName,
-    LLVMValueRef File,
+    LLVMMetadataRef File,
     unsigned LineNo,
-    LLVMValueRef Ty,
+    LLVMMetadataRef Ty,
     bool isLocalToUnit,
     bool isDefinition,
     unsigned ScopeLine,
     unsigned Flags,
     bool isOptimized,
     LLVMValueRef Fn,
-    LLVMValueRef TParam,
-    LLVMValueRef Decl) {
-    return wrapDI(Builder->createFunction(
+    LLVMMetadataRef TParam,
+    LLVMMetadataRef Decl) {
+    return wrap(Builder->createFunction(
         unwrapDI<DIScope>(Scope), Name, LinkageName,
         unwrapDI<DIFile>(File), LineNo,
         unwrapDI<DICompositeType>(Ty), isLocalToUnit, isDefinition, ScopeLine,
@@ -328,42 +333,42 @@ extern "C" LLVMValueRef LLVMDIBuilderCreateFunction(
         unwrapDI<MDNode*>(Decl)));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateBasicType(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateBasicType(
     DIBuilderRef Builder,
     const char* Name,
     uint64_t SizeInBits,
     uint64_t AlignInBits,
     unsigned Encoding) {
-    return wrapDI(Builder->createBasicType(
+    return wrap(Builder->createBasicType(
         Name, SizeInBits,
         AlignInBits, Encoding));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreatePointerType(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreatePointerType(
     DIBuilderRef Builder,
-    LLVMValueRef PointeeTy,
+    LLVMMetadataRef PointeeTy,
     uint64_t SizeInBits,
     uint64_t AlignInBits,
     const char* Name) {
-    return wrapDI(Builder->createPointerType(
+    return wrap(Builder->createPointerType(
         unwrapDI<DIType>(PointeeTy), SizeInBits, AlignInBits, Name));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateStructType(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateStructType(
     DIBuilderRef Builder,
-    LLVMValueRef Scope,
+    LLVMMetadataRef Scope,
     const char* Name,
-    LLVMValueRef File,
+    LLVMMetadataRef File,
     unsigned LineNumber,
     uint64_t SizeInBits,
     uint64_t AlignInBits,
     unsigned Flags,
-    LLVMValueRef DerivedFrom,
-    LLVMValueRef Elements,
+    LLVMMetadataRef DerivedFrom,
+    LLVMMetadataRef Elements,
     unsigned RunTimeLang,
-    LLVMValueRef VTableHolder,
+    LLVMMetadataRef VTableHolder,
     const char *UniqueId) {
-    return wrapDI(Builder->createStructType(
+    return wrap(Builder->createStructType(
         unwrapDI<DIDescriptor>(Scope),
         Name,
         unwrapDI<DIFile>(File),
@@ -381,31 +386,31 @@ extern "C" LLVMValueRef LLVMDIBuilderCreateStructType(
         ));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateMemberType(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateMemberType(
     DIBuilderRef Builder,
-    LLVMValueRef Scope,
+    LLVMMetadataRef Scope,
     const char* Name,
-    LLVMValueRef File,
+    LLVMMetadataRef File,
     unsigned LineNo,
     uint64_t SizeInBits,
     uint64_t AlignInBits,
     uint64_t OffsetInBits,
     unsigned Flags,
-    LLVMValueRef Ty) {
-    return wrapDI(Builder->createMemberType(
+    LLVMMetadataRef Ty) {
+    return wrap(Builder->createMemberType(
         unwrapDI<DIDescriptor>(Scope), Name,
         unwrapDI<DIFile>(File), LineNo,
         SizeInBits, AlignInBits, OffsetInBits, Flags,
         unwrapDI<DIType>(Ty)));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateLexicalBlock(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateLexicalBlock(
     DIBuilderRef Builder,
-    LLVMValueRef Scope,
-    LLVMValueRef File,
+    LLVMMetadataRef Scope,
+    LLVMMetadataRef File,
     unsigned Line,
     unsigned Col) {
-    return wrapDI(Builder->createLexicalBlock(
+    return wrap(Builder->createLexicalBlock(
         unwrapDI<DIDescriptor>(Scope),
         unwrapDI<DIFile>(File), Line, Col
 #if LLVM_VERSION_MINOR == 5
@@ -414,21 +419,21 @@ extern "C" LLVMValueRef LLVMDIBuilderCreateLexicalBlock(
         ));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateStaticVariable(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateStaticVariable(
     DIBuilderRef Builder,
-    LLVMValueRef Context,
+    LLVMMetadataRef Context,
     const char* Name,
     const char* LinkageName,
-    LLVMValueRef File,
+    LLVMMetadataRef File,
     unsigned LineNo,
-    LLVMValueRef Ty,
+    LLVMMetadataRef Ty,
     bool isLocalToUnit,
     LLVMValueRef Val,
-    LLVMValueRef Decl = NULL) {
+    LLVMMetadataRef Decl = NULL) {
 #if LLVM_VERSION_MINOR >= 6
-    return wrapDI(Builder->createGlobalVariable(unwrapDI<DIDescriptor>(Context),
+    return wrap(Builder->createGlobalVariable(unwrapDI<DIDescriptor>(Context),
 #else
-    return wrapDI(Builder->createStaticVariable(unwrapDI<DIDescriptor>(Context),
+    return wrap(Builder->createStaticVariable(unwrapDI<DIDescriptor>(Context),
 #endif
         Name,
         LinkageName,
@@ -440,66 +445,66 @@ extern "C" LLVMValueRef LLVMDIBuilderCreateStaticVariable(
         unwrapDI<MDNode*>(Decl)));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateLocalVariable(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateLocalVariable(
     DIBuilderRef Builder,
     unsigned Tag,
-    LLVMValueRef Scope,
+    LLVMMetadataRef Scope,
     const char* Name,
-    LLVMValueRef File,
+    LLVMMetadataRef File,
     unsigned LineNo,
-    LLVMValueRef Ty,
+    LLVMMetadataRef Ty,
     bool AlwaysPreserve,
     unsigned Flags,
     unsigned ArgNo) {
-    return wrapDI(Builder->createLocalVariable(Tag,
+    return wrap(Builder->createLocalVariable(Tag,
         unwrapDI<DIDescriptor>(Scope), Name,
         unwrapDI<DIFile>(File),
         LineNo,
         unwrapDI<DIType>(Ty), AlwaysPreserve, Flags, ArgNo));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateArrayType(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateArrayType(
     DIBuilderRef Builder,
     uint64_t Size,
     uint64_t AlignInBits,
-    LLVMValueRef Ty,
-    LLVMValueRef Subscripts) {
-    return wrapDI(Builder->createArrayType(Size, AlignInBits,
+    LLVMMetadataRef Ty,
+    LLVMMetadataRef Subscripts) {
+    return wrap(Builder->createArrayType(Size, AlignInBits,
         unwrapDI<DIType>(Ty),
         unwrapDI<DIArray>(Subscripts)));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateVectorType(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateVectorType(
     DIBuilderRef Builder,
     uint64_t Size,
     uint64_t AlignInBits,
-    LLVMValueRef Ty,
-    LLVMValueRef Subscripts) {
-    return wrapDI(Builder->createVectorType(Size, AlignInBits,
+    LLVMMetadataRef Ty,
+    LLVMMetadataRef Subscripts) {
+    return wrap(Builder->createVectorType(Size, AlignInBits,
         unwrapDI<DIType>(Ty),
         unwrapDI<DIArray>(Subscripts)));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderGetOrCreateSubrange(
+extern "C" LLVMMetadataRef LLVMDIBuilderGetOrCreateSubrange(
     DIBuilderRef Builder,
     int64_t Lo,
     int64_t Count) {
-    return wrapDI(Builder->getOrCreateSubrange(Lo, Count));
+    return wrap(Builder->getOrCreateSubrange(Lo, Count));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderGetOrCreateArray(
+extern "C" LLVMMetadataRef LLVMDIBuilderGetOrCreateArray(
     DIBuilderRef Builder,
     LLVMValueRef* Ptr,
     unsigned Count) {
-    return wrapDI(Builder->getOrCreateArray(
+    return wrap(Builder->getOrCreateArray(
         ArrayRef<Metadata*>(reinterpret_cast<Metadata**>(Ptr), Count)));
 }
 
 extern "C" LLVMValueRef LLVMDIBuilderInsertDeclareAtEnd(
     DIBuilderRef Builder,
     LLVMValueRef Val,
-    LLVMValueRef VarInfo,
-    LLVMValueRef Expr,
+    LLVMMetadataRef VarInfo,
+    LLVMMetadataRef Expr,
     LLVMBasicBlockRef InsertAtEnd) {
     return wrap(Builder->insertDeclare(
         unwrap(Val),
@@ -511,8 +516,8 @@ extern "C" LLVMValueRef LLVMDIBuilderInsertDeclareAtEnd(
 extern "C" LLVMValueRef LLVMDIBuilderInsertDeclareBefore(
     DIBuilderRef Builder,
     LLVMValueRef Val,
-    LLVMValueRef VarInfo,
-    LLVMValueRef Expr,
+    LLVMMetadataRef VarInfo,
+    LLVMMetadataRef Expr,
     LLVMValueRef InsertBefore) {
     return wrap(Builder->insertDeclare(
         unwrap(Val),
@@ -521,26 +526,26 @@ extern "C" LLVMValueRef LLVMDIBuilderInsertDeclareBefore(
         unwrap<Instruction>(InsertBefore)));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateEnumerator(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateEnumerator(
     DIBuilderRef Builder,
     const char* Name,
     uint64_t Val)
 {
-    return wrapDI(Builder->createEnumerator(Name, Val));
+    return wrap(Builder->createEnumerator(Name, Val));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateEnumerationType(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateEnumerationType(
     DIBuilderRef Builder,
-    LLVMValueRef Scope,
+    LLVMMetadataRef Scope,
     const char* Name,
-    LLVMValueRef File,
+    LLVMMetadataRef File,
     unsigned LineNumber,
     uint64_t SizeInBits,
     uint64_t AlignInBits,
-    LLVMValueRef Elements,
-    LLVMValueRef ClassType)
+    LLVMMetadataRef Elements,
+    LLVMMetadataRef ClassType)
 {
-    return wrapDI(Builder->createEnumerationType(
+    return wrap(Builder->createEnumerationType(
         unwrapDI<DIDescriptor>(Scope),
         Name,
         unwrapDI<DIFile>(File),
@@ -551,20 +556,20 @@ extern "C" LLVMValueRef LLVMDIBuilderCreateEnumerationType(
         unwrapDI<DIType>(ClassType)));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateUnionType(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateUnionType(
     DIBuilderRef Builder,
-    LLVMValueRef Scope,
+    LLVMMetadataRef Scope,
     const char* Name,
-    LLVMValueRef File,
+    LLVMMetadataRef File,
     unsigned LineNumber,
     uint64_t SizeInBits,
     uint64_t AlignInBits,
     unsigned Flags,
-    LLVMValueRef Elements,
+    LLVMMetadataRef Elements,
     unsigned RunTimeLang,
     const char* UniqueId)
 {
-    return wrapDI(Builder->createUnionType(
+    return wrap(Builder->createUnionType(
         unwrapDI<DIDescriptor>(Scope),
         Name,
         unwrapDI<DIFile>(File),
@@ -586,16 +591,16 @@ extern "C" void LLVMSetUnnamedAddr(LLVMValueRef Value, LLVMBool Unnamed) {
 }
 #endif
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateTemplateTypeParameter(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateTemplateTypeParameter(
     DIBuilderRef Builder,
-    LLVMValueRef Scope,
+    LLVMMetadataRef Scope,
     const char* Name,
-    LLVMValueRef Ty,
-    LLVMValueRef File,
+    LLVMMetadataRef Ty,
+    LLVMMetadataRef File,
     unsigned LineNo,
     unsigned ColumnNo)
 {
-    return wrapDI(Builder->createTemplateTypeParameter(
+    return wrap(Builder->createTemplateTypeParameter(
       unwrapDI<DIDescriptor>(Scope),
       Name,
       unwrapDI<DIType>(Ty),
@@ -604,50 +609,34 @@ extern "C" LLVMValueRef LLVMDIBuilderCreateTemplateTypeParameter(
       ColumnNo));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateOpDeref(LLVMTypeRef IntTy)
+extern "C" int64_t LLVMDIBuilderCreateOpDeref()
 {
-    return LLVMConstInt(IntTy, DIBuilder::OpDeref, true);
+    return dwarf::DW_OP_deref;
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateOpPlus(LLVMTypeRef IntTy)
+extern "C" int64_t LLVMDIBuilderCreateOpPlus()
 {
-    return LLVMConstInt(IntTy, DIBuilder::OpPlus, true);
+    return dwarf::DW_OP_plus;
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateComplexVariable(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateExpression(
     DIBuilderRef Builder,
-    unsigned Tag,
-    LLVMValueRef Scope,
-    const char *Name,
-    LLVMValueRef File,
-    unsigned LineNo,
-    LLVMValueRef Ty,
-    LLVMValueRef* AddrOps,
-    unsigned AddrOpsCount,
-    unsigned ArgNo)
+    int64_t* AddrOps,
+    unsigned AddrOpsCount)
 {
-    llvm::ArrayRef<llvm::Value*> addr_ops((llvm::Value**)AddrOps, AddrOpsCount);
+    llvm::ArrayRef<int64_t> addr_ops(AddrOps, AddrOpsCount);
 
-    return wrap(Builder->createComplexVariable(
-        Tag,
-        unwrapDI<DIDescriptor>(Scope),
-        Name,
-        unwrapDI<DIFile>(File),
-        LineNo,
-        unwrapDI<DIType>(Ty),
-        addr_ops,
-        ArgNo
-    ));
+    return wrap(Builder->createExpression(addr_ops));
 }
 
-extern "C" LLVMValueRef LLVMDIBuilderCreateNameSpace(
+extern "C" LLVMMetadataRef LLVMDIBuilderCreateNameSpace(
     DIBuilderRef Builder,
-    LLVMValueRef Scope,
+    LLVMMetadataRef Scope,
     const char* Name,
-    LLVMValueRef File,
+    LLVMMetadataRef File,
     unsigned LineNo)
 {
-    return wrapDI(Builder->createNameSpace(
+    return wrap(Builder->createNameSpace(
         unwrapDI<DIDescriptor>(Scope),
         Name,
         unwrapDI<DIFile>(File),
@@ -655,14 +644,12 @@ extern "C" LLVMValueRef LLVMDIBuilderCreateNameSpace(
 }
 
 extern "C" void LLVMDICompositeTypeSetTypeArray(
-    LLVMValueRef CompositeType,
-    LLVMValueRef TypeArray)
+    DIBuilderRef Builder,
+    LLVMMetadataRef CompositeType,
+    LLVMMetadataRef TypeArray)
 {
-#if LLVM_VERSION_MINOR >= 6
-    unwrapDI<DICompositeType>(CompositeType).setArrays(unwrapDI<DIArray>(TypeArray));
-#else
-    unwrapDI<DICompositeType>(CompositeType).setTypeArray(unwrapDI<DIArray>(TypeArray));
-#endif
+    DICompositeType *DICT = unwrap<DICompositeType>(CompositeType);
+    Builder->replaceArrays(*DICT, *unwrap<DIArray>(TypeArray));
 }
 
 extern "C" void LLVMWriteTypeToString(LLVMTypeRef Type, RustStringRef str) {
@@ -776,7 +763,7 @@ extern "C" const char*
 #if LLVM_VERSION_MINOR >= 6
 LLVMRustArchiveReadSection(OwningBinary<Archive> *ob, char *name, size_t *size) {
 
-    std::unique_ptr<Archive> &ar = ob->getBinary();
+    Archive *ar = ob->getBinary();
 #else
 LLVMRustArchiveReadSection(Archive *ar, char *name, size_t *size) {
 #endif
