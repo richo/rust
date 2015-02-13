@@ -427,7 +427,7 @@ fn main() {
     let mut numbers = vec![1, 2, 3];
 
     for i in 0..3 {
-        Thread::spawn(move || {
+        Thread::scoped(move || {
             for j in 0..3 { numbers[j] += 1 }
         });
     }
@@ -482,7 +482,7 @@ fn main() {
 
     for i in 0us..3 {
         let number = numbers.clone();
-        Thread::spawn(move || {
+        Thread::scoped(move || {
             let mut array = number.lock().unwrap();
             array[i] += 1;
             println!("numbers[{}] is {}", i, array[i]);
