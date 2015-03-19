@@ -357,23 +357,9 @@ impl<'a, 'tcx> ErrorReporting<'tcx> for InferCtxt<'a, 'tcx> {
             }
         };
 
-        let message_root_str = match trace.origin {
-            infer::Misc(_) => "mismatched types",
-            infer::MethodCompatCheck(_) => "method not compatible with trait",
-            infer::ExprAssignable(_) => "mismatched types",
-            infer::RelateTraitRefs(_) => "mismatched traits",
-            infer::RelateSelfType(_) => "mismatched types",
-            infer::RelateOutputImplTypes(_) => "mismatched types",
-            infer::MatchExpressionArm(_, _) => "match arms have incompatible types",
-            infer::IfExpression(_) => "if and else have incompatible types",
-            infer::IfExpressionWithNoElse(_) => "if may be missing an else clause",
-            infer::RangeExpression(_) => "start and end of range have incompatible types",
-            infer::EquatePredicate(_) => "equality predicate not satisfied",
-        };
-
         span_err!(self.tcx.sess, trace.origin.span(), E0308,
             "{}: {} ({})",
-                 message_root_str,
+                 trace.origin,
                  expected_found_str,
                  ty::type_err_to_str(self.tcx, terr));
 
@@ -1493,49 +1479,12 @@ impl<'a, 'tcx> ErrorReportingHelpers<'tcx> for InferCtxt<'a, 'tcx> {
     fn note_region_origin(&self, origin: &SubregionOrigin<'tcx>) {
         match *origin {
             infer::Subtype(ref trace) => {
-                let desc = match trace.origin {
-                    infer::Misc(_) => {
-                        format!("types are compatible")
-                    }
-                    infer::MethodCompatCheck(_) => {
-                        format!("method type is compatible with trait")
-                    }
-                    infer::ExprAssignable(_) => {
-                        format!("expression is assignable")
-                    }
-                    infer::RelateTraitRefs(_) => {
-                        format!("traits are compatible")
-                    }
-                    infer::RelateSelfType(_) => {
-                        format!("self type matches impl self type")
-                    }
-                    infer::RelateOutputImplTypes(_) => {
-                        format!("trait type parameters matches those \
-                                 specified on the impl")
-                    }
-                    infer::MatchExpressionArm(_, _) => {
-                        format!("match arms have compatible types")
-                    }
-                    infer::IfExpression(_) => {
-                        format!("if and else have compatible types")
-                    }
-                    infer::IfExpressionWithNoElse(_) => {
-                        format!("if may be missing an else clause")
-                    }
-                    infer::RangeExpression(_) => {
-                        format!("start and end of range have compatible types")
-                    }
-                    infer::EquatePredicate(_) => {
-                        format!("equality where clause is satisfied")
-                    }
-                };
-
                 match self.values_str(&trace.values) {
                     Some(values_str) => {
                         self.tcx.sess.span_note(
                             trace.origin.span(),
                             &format!("...so that {} ({})",
-                                    desc, values_str));
+                                    trace.origin, values_str));
                     }
                     None => {
                         // Really should avoid printing this error at
@@ -1544,7 +1493,7 @@ impl<'a, 'tcx> ErrorReportingHelpers<'tcx> for InferCtxt<'a, 'tcx> {
                         // doing right now. - nmatsakis
                         self.tcx.sess.span_note(
                             trace.origin.span(),
-                            &format!("...so that {}", desc));
+                            &format!("...so that {}", trace.origin));
                     }
                 }
             }
