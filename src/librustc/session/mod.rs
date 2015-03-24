@@ -24,6 +24,8 @@ use syntax::parse::token;
 use syntax::parse::ParseSess;
 use syntax::{ast, codemap};
 
+// use middle::infer;
+
 use rustc_back::target::Target;
 
 use std::path::{Path, PathBuf};
@@ -62,6 +64,11 @@ pub struct Session {
 
     pub can_print_warnings: bool
 }
+
+// enum ErrorMsg {
+//     Wrapped(&str),
+//     Raw(&str),
+// }
 
 impl Session {
     pub fn span_fatal(&self, sp: Span, msg: &str) -> ! {
