@@ -143,6 +143,8 @@ impl TypeOrigin {
             &TypeOrigin::IfExpressionWithNoElse(_) => "if may be missing an else clause",
             &TypeOrigin::RangeExpression(_) => "start and end of range have incompatible types",
             &TypeOrigin::EquatePredicate(_) => "equality predicate not satisfied",
+            &TypeOrigin::TypeMismatch(_) => "type mismatch resolving",
+            &TypeOrigin::IncompatibleConstructor(_) => "structure constructor specifies a structure of type",
         }
     }
 }
