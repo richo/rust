@@ -1479,12 +1479,49 @@ impl<'a, 'tcx> ErrorReportingHelpers<'tcx> for InferCtxt<'a, 'tcx> {
     fn note_region_origin(&self, origin: &SubregionOrigin<'tcx>) {
         match *origin {
             infer::Subtype(ref trace) => {
+                let desc = match trace.origin {
+                    infer::Misc(_) => {
+                        format!("types are compatible")
+                    }
+                    infer::MethodCompatCheck(_) => {
+                        format!("method type is compatible with trait")
+                    }
+                    infer::ExprAssignable(_) => {
+                        format!("expression is assignable")
+                    }
+                    infer::RelateTraitRefs(_) => {
+                        format!("traits are compatible")
+                    }
+                    infer::RelateSelfType(_) => {
+                        format!("self type matches impl self type")
+                    }
+                    infer::RelateOutputImplTypes(_) => {
+                        format!("trait type parameters matches those \
+                                 specified on the impl")
+                    }
+                    infer::MatchExpressionArm(_, _) => {
+                        format!("match arms have compatible types")
+                    }
+                    infer::IfExpression(_) => {
+                        format!("if and else have compatible types")
+                    }
+                    infer::IfExpressionWithNoElse(_) => {
+                        format!("if may be missing an else clause")
+                    }
+                    infer::RangeExpression(_) => {
+                        format!("start and end of range have compatible types")
+                    }
+                    infer::EquatePredicate(_) => {
+                        format!("equality where clause is satisfied")
+                    }
+                };
+
                 match self.values_str(&trace.values) {
                     Some(values_str) => {
                         self.tcx.sess.span_note(
                             trace.origin.span(),
                             &format!("...so that {} ({})",
-                                    trace.origin, values_str));
+                                    desc, values_str));
                     }
                     None => {
                         // Really should avoid printing this error at
@@ -1493,7 +1530,7 @@ impl<'a, 'tcx> ErrorReportingHelpers<'tcx> for InferCtxt<'a, 'tcx> {
                         // doing right now. - nmatsakis
                         self.tcx.sess.span_note(
                             trace.origin.span(),
-                            &format!("...so that {}", trace.origin));
+                            &format!("...so that {}", desc));
                     }
                 }
             }
