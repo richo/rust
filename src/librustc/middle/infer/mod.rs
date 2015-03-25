@@ -147,6 +147,72 @@ impl TypeOrigin {
             &TypeOrigin::IncompatibleConstructor(_) => "structure constructor specifies a structure of type",
         }
     }
+
+    fn format_multiline(&self) -> String {
+        match self {
+            &TypeOrigin::Misc(_) |
+            &TypeOrigin::RelateSelfType(_) |
+            &TypeOrigin::RelateOutputImplTypes(_) |
+            &TypeOrigin::ExprAssignable(_) |
+            &TypeOrigin::IfExpression(_) |
+            &TypeOrigin::IfExpressionWithNoElse(_) |
+            &TypeOrigin::MatchExpressionArm(_, _) |
+            &TypeOrigin::TypeMismatch(_) |
+            &TypeOrigin::IncompatibleConstructor(_) => {
+                let first = msg.match_indices("expected").filter(|s| {
+                    s.0 > 0 && (msg.char_at_reverse(s.0) == ' ' ||
+                                msg.char_at_reverse(s.0) == '(')
+                }).map(|(a, b)| (a - 1, b));
+                let second = msg.match_indices("found").filter(|s| {
+                    msg.char_at_reverse(s.0) == ' '
+                }).map(|(a, b)| (a - 1, b));
+
+                let mut new_msg = String::new();
+                let mut head = 0;
+
+                // Insert `\n` before expected and found.
+                for (pos1, pos2) in first.zip(second) {
+                    new_msg = new_msg +
+                        // A `(` may be preceded by a space and it should be trimmed
+                        msg[head..pos1.0].trim_right() + // prefix
+                        "\n" +                           // insert before first
+                        &msg[pos1.0..pos1.1] +           // insert what first matched
+                        &msg[pos1.1..pos2.0] +           // between matches
+                        "\n   " +                        // insert before second
+                        //           123
+                        // `expected` is 3 char longer than `found`. To align the types,
+                        // `found` gets 3 spaces prepended.
+                        &msg[pos2.0..pos2.1];            // insert what second matched
+
+                    head = pos2.1;
+                }
+
+                let mut tail = &msg[head..];
+                let third = tail.find("(values differ")
+                    .or(tail.find("(lifetime"))
+                    .or(tail.find("(cyclic type of infinite size"));
+                // Insert `\n` before any remaining messages which match.
+                if let Some(pos) = third {
+                    // The end of the message may just be wrapped in `()` without
+                    // `expected`/`found`.  Push this also to a new line and add the
+                    // final tail after.
+                    new_msg = new_msg +
+                        // `(` is usually preceded by a space and should be trimmed.
+                        tail[..pos].trim_right() + // prefix
+                        "\n" +                     // insert before paren
+                        &tail[pos..];              // append the tail
+
+                    tail = "";
+                }
+
+                new_msg.push_str(tail);
+                return new_msg;
+            },
+            _ => {
+                return msg.to_string();
+            }
+        }
+    }
 }
 
 impl fmt::Display for TypeOrigin {
