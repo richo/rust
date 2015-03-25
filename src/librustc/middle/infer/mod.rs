@@ -127,6 +127,12 @@ pub enum TypeOrigin {
 
     // `where a == b`
     EquatePredicate(Span),
+
+    // Goood question
+    TypeMismatch(Span),
+
+    // Structure constructor specifies a structure of type
+    IncompatibleConstructor(Span),
 }
 
 impl TypeOrigin {
@@ -148,7 +154,7 @@ impl TypeOrigin {
         }
     }
 
-    fn format_multiline(&self) -> String {
+    fn format_multiline(&self, msg: &str) -> String {
         match self {
             &TypeOrigin::Misc(_) |
             &TypeOrigin::RelateSelfType(_) |
