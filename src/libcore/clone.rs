@@ -88,24 +88,42 @@ clone_impl! { () }
 clone_impl! { bool }
 clone_impl! { char }
 
+
 macro_rules! extern_fn_clone {
-    ($($A:ident),*) => (
+    ($($ABI:expr),*) => {
+        $(
+            extern_fn_clone_inner! { $ABI, }
+            extern_fn_clone_inner! { $ABI, A }
+            extern_fn_clone_inner! { $ABI, A, B }
+            extern_fn_clone_inner! { $ABI, A, B, C }
+            extern_fn_clone_inner! { $ABI, A, B, C, D }
+            extern_fn_clone_inner! { $ABI, A, B, C, D, E }
+            extern_fn_clone_inner! { $ABI, A, B, C, D, E, F }
+            extern_fn_clone_inner! { $ABI, A, B, C, D, E, F, G }
+            extern_fn_clone_inner! { $ABI, A, B, C, D, E, F, G, H }
+         )*
+    }
+}
+
+macro_rules! extern_fn_clone_inner {
+    ($abi:expr, $($A:ident),*) => (
         #[unstable(feature = "core",
                    reason = "this may not be sufficient for fns with region parameters")]
-        impl<$($A,)* ReturnType> Clone for extern "Rust" fn($($A),*) -> ReturnType {
+        impl<$($A,)* ReturnType> Clone for extern $abi fn($($A),*) -> ReturnType {
             /// Return a copy of a function pointer
             #[inline]
-            fn clone(&self) -> extern "Rust" fn($($A),*) -> ReturnType { *self }
+            fn clone(&self) -> extern $abi fn($($A),*) -> ReturnType { *self }
+        }
+
+        #[unstable(feature = "core",
+                   reason = "this may not be sufficient for fns with region parameters")]
+        impl<$($A,)* ReturnType> Clone for extern $abi unsafe fn($($A),*) -> ReturnType {
+            /// Return a copy of a function pointer
+            #[inline]
+            fn clone(&self) -> extern $abi unsafe fn($($A),*) -> ReturnType { *self }
         }
     )
 }
 
-extern_fn_clone! {}
-extern_fn_clone! { A }
-extern_fn_clone! { A, B }
-extern_fn_clone! { A, B, C }
-extern_fn_clone! { A, B, C, D }
-extern_fn_clone! { A, B, C, D, E }
-extern_fn_clone! { A, B, C, D, E, F }
-extern_fn_clone! { A, B, C, D, E, F, G }
-extern_fn_clone! { A, B, C, D, E, F, G, H }
+extern_fn_clone!("Rust");
+extern_fn_clone!("C");
