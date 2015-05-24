@@ -19,4 +19,6 @@ endif
 print-%:
 	@echo $*=$($*)
 
+export RUST_BACKTRACE=1
+
 S := $(CFG_SRC_DIR)
