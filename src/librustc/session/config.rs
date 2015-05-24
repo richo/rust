@@ -116,7 +116,8 @@ pub struct Options {
     /// out-of-tree drivers.
     pub alt_std_name: Option<String>,
     /// Indicates how the compiler should treat unstable features
-    pub unstable_features: UnstableFeatures
+    pub unstable_features: UnstableFeatures,
+    pub reproducible: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -240,6 +241,7 @@ pub fn basic_options() -> Options {
         libs: Vec::new(),
         unstable_features: UnstableFeatures::Disallow,
         debug_assertions: true,
+        reproducible: false,
     }
 }
 
@@ -842,6 +844,7 @@ pub fn rustc_optgroups() -> Vec<RustcOptGroup> {
                       `everybody_loops` (all function bodies replaced with `loop {}`).",
                      "TYPE"),
         opt::opt_u("", "show-span", "Show spans for compiler debugging", "expr|pat|ty"),
+        opt::flag("", "reproducible", "Emit deterministic objects"),
     ]);
     opts
 }
@@ -1014,6 +1017,8 @@ pub fn build_session_options(matches: &getopts::Matches) -> Options {
         }
     };
 
+    let reproducible = matches.opt_present("reproducable");
+
     let mut externs = HashMap::new();
     for arg in &matches.opt_strs("extern") {
         let mut parts = arg.splitn(2, '=');
@@ -1060,6 +1065,7 @@ pub fn build_session_options(matches: &getopts::Matches) -> Options {
         libs: libs,
         unstable_features: get_unstable_features_setting(),
         debug_assertions: debug_assertions,
+        reproducible: reproducible,
     }
 }
 

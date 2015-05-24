@@ -555,6 +555,7 @@ fn link_rlib<'a>(sess: &'a Session,
         slib_prefix: sess.target.target.options.staticlib_prefix.clone(),
         slib_suffix: sess.target.target.options.staticlib_suffix.clone(),
         ar_prog: get_ar_prog(sess),
+        reproducible: sess.opts.reproducible,
     };
     let mut ab = ArchiveBuilder::create(config);
     ab.add_file(obj_filename).unwrap();
@@ -1179,6 +1180,7 @@ fn add_upstream_rust_crates(cmd: &mut Linker, sess: &Session,
                     slib_prefix: sess.target.target.options.staticlib_prefix.clone(),
                     slib_suffix: sess.target.target.options.staticlib_suffix.clone(),
                     ar_prog: get_ar_prog(sess),
+                    reproducible: sess.opts.reproducible,
                 };
                 let mut archive = Archive::open(config);
                 archive.remove_file(&format!("{}.o", name));

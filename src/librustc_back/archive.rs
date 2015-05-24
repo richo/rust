@@ -30,7 +30,8 @@ pub struct ArchiveConfig<'a> {
     pub lib_search_paths: Vec<PathBuf>,
     pub slib_prefix: String,
     pub slib_suffix: String,
-    pub ar_prog: String
+    pub ar_prog: String,
+    pub reproducible: bool,
 }
 
 pub struct Archive<'a> {
@@ -159,6 +160,9 @@ impl<'a> Archive<'a> {
             Action::UpdateSymbols => {
                 cmd.arg("s").arg(dst);
             }
+        }
+        if self.config.reproducible {
+            cmd.arg("D");
         }
     }
 }
