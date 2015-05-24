@@ -150,19 +150,32 @@ impl<'a> Archive<'a> {
     fn prepare_ar_action(&self, cmd: &mut Command, dst: &Path, action: Action) {
         match action {
             Action::Remove(file) => {
-                cmd.arg("d").arg(dst).arg(file);
+                cmd.arg(self.action("d")).arg(dst).arg(file);
             }
             Action::AddObjects(objs, update_symbols) => {
-                cmd.arg(if update_symbols {"crus"} else {"cruS"})
+                cmd.arg(if update_symbols {self.action("crus")} else {self.action("cruS")})
                    .arg(dst)
                    .args(objs);
             }
             Action::UpdateSymbols => {
-                cmd.arg("s").arg(dst);
+                cmd.arg(self.action("s")).arg(dst);
             }
         }
-        if self.config.reproducible {
-            cmd.arg("D");
+    }
+
+    // Return the action, optionally mangled to do the right thing for a reproducible build.
+    // Currently panics for anything that won't use GNU ar(1)
+    fn action(&self, action: &str) -> &str {
+        if self.sess.config.reproducible {
+            if sess.target.target_env != "gnu" {
+                panic!("Reproducible builds only supported on targets that link \
+                       with gnu's ar(1) currently");
+            }
+            let tmp = action.to_string();
+            tmp.append("D");
+            &tmp
+        } else {
+            action
         }
     }
 }

@@ -1017,7 +1017,7 @@ pub fn build_session_options(matches: &getopts::Matches) -> Options {
         }
     };
 
-    let reproducible = matches.opt_present("reproducable");
+    let reproducible = matches.opt_present("reproducible");
 
     let mut externs = HashMap::new();
     for arg in &matches.opt_strs("extern") {
