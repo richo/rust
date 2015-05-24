@@ -150,28 +150,37 @@ impl<'a> Archive<'a> {
     fn prepare_ar_action(&self, cmd: &mut Command, dst: &Path, action: Action) {
         match action {
             Action::Remove(file) => {
-                cmd.arg(self.action("d")).arg(dst).arg(file);
+                cmd.arg(self.action(&action)).arg(dst).arg(file);
             }
-            Action::AddObjects(objs, update_symbols) => {
-                cmd.arg(if update_symbols {self.action("crus")} else {self.action("cruS")})
+            Action::AddObjects(objs, _) => {
+                cmd.arg(self.action(&action))
                    .arg(dst)
                    .args(objs);
             }
             Action::UpdateSymbols => {
-                cmd.arg(self.action("s")).arg(dst);
+                cmd.arg(self.action(&action)).arg(dst);
             }
         }
     }
 
     // Return the action, optionally mangled to do the right thing for a reproducible build.
     // Currently panics for anything that won't use GNU ar(1)
-    fn action<'b>(&self, action: &'b str) -> &'b str {
-        if self.config.reproducible {
-            let mut tmp = action.to_string();
-            tmp.push('D');
-            &tmp[..]
-        } else {
-            action
+    fn action(&self, action: &Action) -> &'static str {
+        // Oof this logic table
+        match action {
+            &Action::Remove(_) => {
+                if self.config.reproducible {"dD"} else {"d"}
+            }
+            &Action::AddObjects(_, update_symbols) => {
+                if update_symbols {
+                    if self.config.reproducible {"crusD"} else {"crus"}
+                } else {
+                    if self.config.reproducible {"cruSD"} else {"cruS"}
+                }
+            }
+            &Action::UpdateSymbols => {
+                if self.config.reproducible {"sD"} else {"s"}
+            }
         }
     }
 }
