@@ -165,15 +165,11 @@ impl<'a> Archive<'a> {
 
     // Return the action, optionally mangled to do the right thing for a reproducible build.
     // Currently panics for anything that won't use GNU ar(1)
-    fn action(&self, action: &str) -> &str {
-        if self.sess.config.reproducible {
-            if sess.target.target_env != "gnu" {
-                panic!("Reproducible builds only supported on targets that link \
-                       with gnu's ar(1) currently");
-            }
-            let tmp = action.to_string();
-            tmp.append("D");
-            &tmp
+    fn action<'b>(&self, action: &'b str) -> &'b str {
+        if self.config.reproducible {
+            let mut tmp = action.to_string();
+            tmp.push('D');
+            &tmp[..]
         } else {
             action
         }
