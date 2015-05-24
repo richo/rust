@@ -76,7 +76,8 @@ pub struct Target {
     pub target_pointer_width: String,
     /// OS name to use for conditional compilation.
     pub target_os: String,
-    /// Environment name to use for conditional compilation.
+    /// Environment name to use for conditional compilation. Valid options include, "gnu", "msvc",
+    /// "darwin"
     pub target_env: String,
     /// Architecture to use for ABI considerations. Valid options: "x86", "x86_64", "arm",
     /// "aarch64", "mips", and "powerpc". "mips" includes "mipsel".
