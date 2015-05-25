@@ -173,9 +173,9 @@ impl<'a> Archive<'a> {
             }
             &Action::AddObjects(_, update_symbols) => {
                 if update_symbols {
-                    if self.config.reproducible {"crusD"} else {"crus"}
+                    if self.config.reproducible {"crsD"} else {"crus"}
                 } else {
-                    if self.config.reproducible {"cruSD"} else {"cruS"}
+                    if self.config.reproducible {"crSD"} else {"cruS"}
                 }
             }
             &Action::UpdateSymbols => {
