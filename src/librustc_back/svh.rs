@@ -124,6 +124,12 @@ impl Svh {
     }
 }
 
+impl Hash for Svh {
+    fn hash<H>(&self, state: &mut H) where H: Hasher {
+        self.raw.hash(state);
+    }
+}
+
 impl fmt::Display for Svh {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.pad(&self.as_string())
