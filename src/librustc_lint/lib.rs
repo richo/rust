@@ -48,6 +48,7 @@ extern crate rustc;
 extern crate log;
 
 pub use rustc::lint as lint;
+pub use rustc::back as back;
 pub use rustc::metadata as metadata;
 pub use rustc::middle as middle;
 pub use rustc::session as session;

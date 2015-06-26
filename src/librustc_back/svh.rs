@@ -122,6 +122,17 @@ impl Svh {
             raw: state.finish(),
         };
     }
+
+    pub fn calculate_attr(attr: &ast::Attribute) -> Svh {
+        // FIXME: this should use SHA1, not SipHash. SipHash is not built to
+        //        avoid collisions.
+        let mut state = SipHasher::new();
+        attr.node.value.hash(&mut state);
+
+        return Svh {
+            raw: state.finish(),
+        };
+    }
 }
 
 impl Hash for Svh {

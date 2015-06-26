@@ -35,6 +35,7 @@ use middle::ty::{self, Ty};
 use middle::{def, pat_util, stability};
 use middle::const_eval::{eval_const_expr_partial, ConstVal};
 use middle::cfg;
+use back::svh::Svh;
 use rustc::ast_map;
 use util::nodemap::{FnvHashMap, NodeSet};
 use lint::{Level, Context, LintPass, LintArray, Lint};
@@ -2222,7 +2223,17 @@ impl LintPass for DuplicatedAttrs {
     }
 
     fn check_item(&mut self, cx: &Context, it: &ast::Item) {
-        let hashed: HashSet<_> = it.attrs.iter().collect();
+        if let Ok(_) = ::std::env::var("RICHO_DEBUG") {
+            println!("{:?}", it.attrs);
+        }
+
+
+        // let hashed: HashSet<_> = it.attrs.iter().map(|x| &x.node).collect();
+        let hashed: HashSet<_> = it.attrs.iter().map(|x| Svh::calculate_attr(x)).collect();
+
+        if let Ok(_) = ::std::env::var("RICHO_DEBUG") {
+            println!("{:?}", hashed);
+        }
         if hashed.len() != it.attrs.len() {
                 let msg = format!("Item {} has duplicate attributes", it.ident);
                 cx.span_lint(DUPLICATED_ATTRS, it.span, &msg);
