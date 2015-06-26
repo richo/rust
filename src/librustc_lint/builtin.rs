@@ -2206,6 +2206,30 @@ impl LintPass for MutableTransmutes {
     }
 }
 
+/// Forbids duplicating attrs on an item
+#[derive(Clone, Copy)]
+pub struct DuplicatedAttrs;
+
+declare_lint! {
+    DUPLICATED_ATTRS,
+    Deny,
+    "Duplicated attributes are redundant"
+}
+
+impl LintPass for DuplicatedAttrs {
+    fn get_lints(&self) -> LintArray {
+        lint_array!(DUPLICATED_ATTRS)
+    }
+
+    fn check_item(&mut self, cx: &Context, it: &ast::Item) {
+        let hashed: HashSet<_> = it.attrs.iter().collect();
+        if hashed.len() != it.attrs.len() {
+                let msg = format!("Item {} has duplicate attributes", it.ident);
+                cx.span_lint(DUPLICATED_ATTRS, it.span, &msg);
+        }
+    }
+}
+
 /// Forbids using the `#[feature(...)]` attribute
 #[derive(Copy, Clone)]
 pub struct UnstableFeatures;
