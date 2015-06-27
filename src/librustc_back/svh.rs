@@ -73,7 +73,7 @@ impl Svh {
         }
     }
 
-    pub fn as_string(&self) -> String {
+    pub fn as_string<'a>(&'a self) -> String {
         (0..64).step_by(4).map(|i| hex(self.raw >> i)).collect()
     }
 
