@@ -6684,6 +6684,8 @@ pub fn hash_crate_independent<'tcx>(tcx: &ctxt<'tcx>, ty: Ty<'tcx>, svh: &Svh) -
             } else {
                 tcx.sess.cstore.get_crate_hash(did.krate)
             };
+            // TODO(richo) Can we just hash the u64 underlying repr without breaking the abi?
+            // Update! It looks like we totally absolutely can not do that.
             h.as_str().hash(state);
             did.node.hash(state);
         };

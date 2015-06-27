@@ -51,19 +51,37 @@ use std::hash::{Hash, SipHasher, Hasher};
 use syntax::ast;
 use syntax::visit;
 
-#[derive(Clone, PartialEq, Debug)]
+fn hex(b: u64) -> char {
+    let b = (b & 0xf) as u8;
+    let b = match b {
+        0 ... 9 => '0' as u8 + b,
+        _ => 'a' as u8 + b - 10,
+    };
+    b as char
+}
+
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Svh {
-    hash: String,
+    raw: u64,
 }
 
 impl Svh {
     pub fn new(hash: &str) -> Svh {
         assert!(hash.len() == 16);
-        Svh { hash: hash.to_string() }
+        Svh {
+            raw: u64::from_str_radix(hash, 16).unwrap(),
+        }
     }
 
+    pub fn as_string(&self) -> String {
+        (0..64).step_by(4).map(|i| hex(self.raw >> i)).collect()
+    }
+
+    // It's super unfortunate that this really innocuous looking method allocates, however it
+    // appears that String and &str hash differently (Which makes sense) but unfortunately also
+    // broke the abi and made building a stage1 impossible.
     pub fn as_str<'a>(&'a self) -> &'a str {
-        &self.hash
+        &self.as_string()[..]
     }
 
     pub fn calculate(metadata: &Vec<String>, krate: &ast::Crate) -> Svh {
@@ -100,25 +118,15 @@ impl Svh {
             attr.node.value.hash(&mut state);
         }
 
-        let hash = state.finish();
         return Svh {
-            hash: (0..64).step_by(4).map(|i| hex(hash >> i)).collect()
+            raw: state.finish(),
         };
-
-        fn hex(b: u64) -> char {
-            let b = (b & 0xf) as u8;
-            let b = match b {
-                0 ... 9 => '0' as u8 + b,
-                _ => 'a' as u8 + b - 10,
-            };
-            b as char
-        }
     }
 }
 
 impl fmt::Display for Svh {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.pad(self.as_str())
+        f.pad(&self.as_string())
     }
 }
 
