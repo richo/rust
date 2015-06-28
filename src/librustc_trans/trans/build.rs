@@ -1035,8 +1035,7 @@ pub fn Trap(cx: Block) {
     B(cx).trap();
 }
 
-pub fn LandingPad(cx: Block, ty: Type, pers_fn: ValueRef,
-                  num_clauses: usize) -> ValueRef {
+pub fn LandingPad(cx: Block, ty: Type, num_clauses: usize) -> ValueRef {
     check_not_terminated(cx);
     assert!(!cx.unreachable.get());
     B(cx).landing_pad(ty, num_clauses)

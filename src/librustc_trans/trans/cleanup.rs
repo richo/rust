@@ -877,7 +877,7 @@ impl<'blk, 'tcx> CleanupHelperMethods<'blk, 'tcx> for FunctionContext<'blk, 'tcx
         };
 
         // The only landing pad clause will be 'cleanup'
-        let llretval = build::LandingPad(pad_bcx, llretty, llpersonality, 1);
+        let llretval = build::LandingPad(pad_bcx, llretty, 1);
 
         // The landing pad block is a cleanup
         build::SetCleanup(pad_bcx, llretval);
