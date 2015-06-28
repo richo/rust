@@ -1135,7 +1135,6 @@ extern {
                            -> ValueRef;
     pub fn LLVMBuildLandingPad(B: BuilderRef,
                                Ty: TypeRef,
-                               PersFn: ValueRef,
                                NumClauses: c_uint,
                                Name: *const c_char)
                                -> ValueRef;
