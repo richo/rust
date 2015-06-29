@@ -120,6 +120,11 @@ extern "C" void LLVMAddDereferenceableCallSiteAttr(LLVMValueRef Instr, unsigned 
                                                          idx, B)));
 }
 
+extern "C" void LLVMSetFunctionPersonalityFn(LLVMValueRef Fn, LLVMValueRef C) {
+  Function *A = unwrap<Function>(Fn);
+  A->setPersonalityFn(C);
+}
+
 extern "C" void LLVMAddFunctionAttribute(LLVMValueRef Fn, unsigned index, uint64_t Val) {
   Function *A = unwrap<Function>(Fn);
   AttrBuilder B;
