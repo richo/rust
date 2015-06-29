@@ -971,7 +971,7 @@ extern {
     pub fn LLVMGetIntrinsicID(Fn: ValueRef) -> c_uint;
     pub fn LLVMGetFunctionCallConv(Fn: ValueRef) -> c_uint;
     pub fn LLVMSetFunctionCallConv(Fn: ValueRef, CC: c_uint);
-    pub fn LLVMSetFunctionPersonalityFn(Fn: LLVMValueRef, C: LLVMValueRef);
+    pub fn LLVMSetFunctionPersonalityFn(Fn: ValueRef, C: ValueRef);
     pub fn LLVMGetGC(Fn: ValueRef) -> *const c_char;
     pub fn LLVMSetGC(Fn: ValueRef, Name: *const c_char);
     pub fn LLVMAddDereferenceableAttr(Fn: ValueRef, index: c_uint, bytes: uint64_t);
@@ -2129,9 +2129,9 @@ pub fn SetFunctionCallConv(fn_: ValueRef, cc: CallConv) {
         LLVMSetFunctionCallConv(fn_, cc as c_uint);
     }
 }
-pub fn SetFunctionPersonalityFn(fn_: LLVMValueRef, C: LLVMValueRef) {
+pub fn SetFunctionPersonalityFn(Fn: ValueRef, C: ValueRef) {
     unsafe {
-        LLVMSetFunctionPersonalityFn(fn_, C);
+        LLVMSetFunctionPersonalityFn(Fn, C);
     }
 }
 pub fn SetLinkage(global: ValueRef, link: Linkage) {
