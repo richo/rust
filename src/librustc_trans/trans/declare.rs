@@ -99,15 +99,21 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
         _ => {
             let mut personality = ccx.eh_personality().borrow_mut();
             match *personality {
-                Some(llpersonality) => llpersonality,
+                Some(llpersonality) => {
+                    warn!("Got a personality");
+                    llpersonality
+                },
                 None => {
                     let name = if target.options.is_like_msvc {
                         "__C_specific_handler"
                     } else {
                         "rust_eh_personality"
                     };
+                    warn!("Looking up a personality");
                     let fty = Type::variadic_func(&[], &Type::i32(ccx));
+                    warn!("Setup fty");
                     let f = declare_cfn(ccx, name, fty, ccx.tcx().types.i32);
+                    warn!("Declared a fn");
                     *personality = Some(f);
                     f
                 }
@@ -115,7 +121,9 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
         }
     };
 
-    llvm::SetFunctionPersonalityFn(llfn, llpersonality);
+    warn!("Personality fn: {:?}", llpersonality);
+
+    // llvm::SetFunctionPersonalityFn(llfn, llpersonality);
     // Function addresses in Rust are never significant, allowing functions to
     // be merged.
     llvm::SetUnnamedAddr(llfn, true);
