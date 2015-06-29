@@ -2129,9 +2129,9 @@ pub fn SetFunctionCallConv(fn_: ValueRef, cc: CallConv) {
         LLVMSetFunctionCallConv(fn_, cc as c_uint);
     }
 }
-pub fn SetFunctionPersonalityFn(Fn: LLVMValueRef, C: LLVMValueRef) {
+pub fn SetFunctionPersonalityFn(fn_: LLVMValueRef, C: LLVMValueRef) {
     unsafe {
-        LLVMSetFunctionPersonalityFn(Fn: LLVMValueRef, C: LLVMValueRef);
+        LLVMSetFunctionPersonalityFn(fn_, C);
     }
 }
 pub fn SetLinkage(global: ValueRef, link: Linkage) {
