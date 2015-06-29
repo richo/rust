@@ -24,7 +24,8 @@ use middle::ty::{self, ClosureTyper};
 use syntax::abi;
 use trans::attributes;
 use trans::base;
-use trans::common;
+use trans::common::{self, ExprId};
+use trans::callee;
 use trans::context::CrateContext;
 use trans::monomorphize;
 use trans::type_::Type;
@@ -88,10 +89,10 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
     // CRT's custom `__C_specific_handler` personality funciton, which
     // forces LLVM to consider landing pads as "landing pads for SEH".
     let target = ccx.sess().target.target;
-    let llpersonality = match pad_bcx.tcx().lang_items.eh_personality() {
+    let llpersonality = match ccx.tcx().lang_items.eh_personality() {
         Some(def_id) if !target.options.is_like_msvc => {
-            callee::trans_fn_ref(pad_bcx.ccx(), def_id, ExprId(0),
-                                 pad_bcx.fcx.param_substs).val
+            callee::trans_fn_ref(ccx, def_id, ExprId(0),
+                                 ccx.fcx.param_substs).val
         }
         _ => {
             let mut personality = ccx.eh_personality().borrow_mut();
@@ -104,7 +105,7 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
                         "rust_eh_personality"
                     };
                     let fty = Type::variadic_func(&[], &Type::i32(ccx));
-                    let f = declare::declare_cfn(ccx, name, fty, ccx.tcx().types.i32);
+                    let f = declare_cfn(ccx, name, fty, ccx.tcx().types.i32);
                     *personality = Some(f);
                     f
                 }
