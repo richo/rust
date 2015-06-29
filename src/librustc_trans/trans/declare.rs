@@ -65,8 +65,12 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
     let llfn = unsafe {
         llvm::LLVMGetOrInsertFunction(ccx.llmod(), namebuf.as_ptr(), ty.to_ref())
     };
+    warn!("Got fn: {:?}", llfn);
 
     llvm::SetFunctionCallConv(llfn, callconv);
+    if name == "rust_eh_personality" {
+        return llfn
+    }
 
     // The exception handling personality function.
     //
@@ -123,7 +127,7 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
 
     warn!("Personality fn: {:?}", llpersonality);
 
-    // llvm::SetFunctionPersonalityFn(llfn, llpersonality);
+    llvm::SetFunctionPersonalityFn(llfn, llpersonality);
     // Function addresses in Rust are never significant, allowing functions to
     // be merged.
     llvm::SetUnnamedAddr(llfn, true);
