@@ -68,9 +68,6 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
     warn!("Got fn: {:?}", llfn);
 
     llvm::SetFunctionCallConv(llfn, callconv);
-    if name == "rust_eh_personality" {
-        return llfn
-    }
 
     // The exception handling personality function.
     //
@@ -94,40 +91,42 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
     // forces LLVM to consider landing pads as "landing pads for SEH".
     let target = &ccx.sess().target.target;
 
-    let llpersonality = match ccx.tcx().lang_items.eh_personality() {
-        // TODO(richo) We don't obviously have a function context to lookup yet
-        // Some(def_id) if !target.options.is_like_msvc => {
-        //     callee::trans_fn_ref(ccx, def_id, ExprId(0),
-        //                          ccx.fcx.param_substs).val
-        // }
-        _ => {
-            let mut personality = ccx.eh_personality().borrow_mut();
-            match *personality {
-                Some(llpersonality) => {
-                    warn!("Got a personality");
-                    llpersonality
-                },
-                None => {
-                    let name = if target.options.is_like_msvc {
-                        "__C_specific_handler"
-                    } else {
-                        "rust_eh_personality"
-                    };
-                    warn!("Looking up a personality");
-                    let fty = Type::variadic_func(&[], &Type::i32(ccx));
-                    warn!("Setup fty");
-                    let f = declare_cfn(ccx, name, fty, ccx.tcx().types.i32);
-                    warn!("Declared a fn");
-                    *personality = Some(f);
-                    f
+    if name != "rust_eh_personality" {
+        let llpersonality = match ccx.tcx().lang_items.eh_personality() {
+            // TODO(richo) We don't obviously have a function context to lookup yet
+            // Some(def_id) if !target.options.is_like_msvc => {
+            //     callee::trans_fn_ref(ccx, def_id, ExprId(0),
+            //                          ccx.fcx.param_substs).val
+            // }
+            _ => {
+                let mut personality = ccx.eh_personality().borrow_mut();
+                match *personality {
+                    Some(llpersonality) => {
+                        warn!("Got a personality");
+                        llpersonality
+                    },
+                    None => {
+                        let name = if target.options.is_like_msvc {
+                            "__C_specific_handler"
+                        } else {
+                            "rust_eh_personality"
+                        };
+                        warn!("Looking up a personality");
+                        let fty = Type::variadic_func(&[], &Type::i32(ccx));
+                        warn!("Setup fty");
+                        let f = declare_cfn(ccx, name, fty, ccx.tcx().types.i32);
+                        warn!("Declared a fn");
+                        *personality = Some(f);
+                        f
+                    }
                 }
             }
-        }
-    };
+        };
 
-    warn!("Personality fn: {:?}", llpersonality);
+        warn!("Personality fn: {:?}", llpersonality);
+        llvm::SetFunctionPersonalityFn(llfn, llpersonality);
+    }
 
-    llvm::SetFunctionPersonalityFn(llfn, llpersonality);
     // Function addresses in Rust are never significant, allowing functions to
     // be merged.
     llvm::SetUnnamedAddr(llfn, true);
