@@ -88,12 +88,14 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
     // `rust_eh_personality` function, but rather we wired it up to the
     // CRT's custom `__C_specific_handler` personality funciton, which
     // forces LLVM to consider landing pads as "landing pads for SEH".
-    let target = ccx.sess().target.target;
+    let target = &ccx.sess().target.target;
+
     let llpersonality = match ccx.tcx().lang_items.eh_personality() {
-        Some(def_id) if !target.options.is_like_msvc => {
-            callee::trans_fn_ref(ccx, def_id, ExprId(0),
-                                 ccx.fcx.param_substs).val
-        }
+        // TODO(richo) We don't obviously have a function context to lookup yet
+        // Some(def_id) if !target.options.is_like_msvc => {
+        //     callee::trans_fn_ref(ccx, def_id, ExprId(0),
+        //                          ccx.fcx.param_substs).val
+        // }
         _ => {
             let mut personality = ccx.eh_personality().borrow_mut();
             match *personality {
