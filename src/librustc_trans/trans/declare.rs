@@ -58,7 +58,7 @@ pub fn declare_global(ccx: &CrateContext, name: &str, ty: Type) -> llvm::ValueRe
 /// update the declaration and return existing ValueRef instead.
 pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
                   ty: Type, output: ty::FnOutput) -> ValueRef {
-    debug!("declare_fn(name={:?})", name);
+    warn!("declare_fn(name={:?})", name);
     let namebuf = CString::new(name).unwrap_or_else(|_|{
         ccx.sess().bug(&format!("name {:?} contains an interior null byte", name))
     });
@@ -153,6 +153,7 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
 /// update the declaration and return existing ValueRef instead.
 pub fn declare_cfn(ccx: &CrateContext, name: &str, fn_type: Type,
                    output: ty::Ty) -> ValueRef {
+    warn!("Entered declare_cfn");
     declare_fn(ccx, name, llvm::CCallConv, fn_type, ty::FnConverging(output))
 }
 
