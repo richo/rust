@@ -57,7 +57,7 @@ pub fn declare_global(ccx: &CrateContext, name: &str, ty: Type) -> llvm::ValueRe
 /// If there’s a value with the same name already declared, the function will
 /// update the declaration and return existing ValueRef instead.
 pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
-                  ty: Type, output: ty::FnOutput) -> ValueRef {
+                  ty: Type, output: ty::FnOutput, personality: Option<ValueRef>) -> ValueRef {
     warn!("declare_fn(name={:?})", name);
     let namebuf = CString::new(name).unwrap_or_else(|_|{
         ccx.sess().bug(&format!("name {:?} contains an interior null byte", name))
@@ -65,68 +65,14 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
     let llfn = unsafe {
         llvm::LLVMGetOrInsertFunction(ccx.llmod(), namebuf.as_ptr(), ty.to_ref())
     };
-    warn!("Got fn: {:?}", llfn);
+    // warn!("Got fn: {:?}", llfn);
 
     llvm::SetFunctionCallConv(llfn, callconv);
 
-    // The exception handling personality function.
-    //
-    // If our compilation unit has the `eh_personality` lang item somewhere
-    // within it, then we just need to translate that. Otherwise, we're
-    // building an rlib which will depend on some upstream implementation of
-    // this function, so we just codegen a generic reference to it. We don't
-    // specify any of the types for the function, we just make it a symbol
-    // that LLVM can later use.
-    //
-    // Note that MSVC is a little special here in that we don't use the
-    // `eh_personality` lang item at all. Currently LLVM has support for
-    // both Dwarf and SEH unwind mechanisms for MSVC targets and uses the
-    // *name of the personality function* to decide what kind of unwind side
-    // tables/landing pads to emit. It looks like Dwarf is used by default,
-    // injecting a dependency on the `_Unwind_Resume` symbol for resuming
-    // an "exception", but for MSVC we want to force SEH. This means that we
-    // can't actually have the personality function be our standard
-    // `rust_eh_personality` function, but rather we wired it up to the
-    // CRT's custom `__C_specific_handler` personality funciton, which
-    // forces LLVM to consider landing pads as "landing pads for SEH".
     let target = &ccx.sess().target.target;
 
     if name != "rust_eh_personality" {
-        let llpersonality = match ccx.tcx().lang_items.eh_personality() {
-            // TODO(richo) We don't obviously have a function context to lookup yet
-            // Some(def_id) if !target.options.is_like_msvc => {
-            //     callee::trans_fn_ref(ccx, def_id, ExprId(0),
-            //                          ccx.fcx.param_substs).val
-            // }
-            _ => {
-                let mut personality = ccx.eh_personality().borrow_mut();
-                match *personality {
-                    Some(llpersonality) => {
-                        warn!("Got a personality");
-                        llpersonality
-                    },
-                    None => {
-                        let name = if target.options.is_like_msvc {
-                            "__C_specific_handler"
-                        } else {
-                            "rust_eh_personality"
-                        };
-                        warn!("Looking up a personality");
-                        let fty = Type::variadic_func(&[], &Type::i32(ccx));
-                        warn!("Setup fty");
-                        let f = declare_cfn(ccx, name, fty, ccx.tcx().types.i32);
-                        warn!("Declared a fn");
-                        *personality = Some(f);
-                        f
-                    }
-                }
-            }
-        };
-
-        warn!("Personality fn: {:?}", llpersonality);
-        // This lurk is now officially hilarious and out of control
-        if name.starts_with("unwind_") {
-            warn!("Setting a personality fn on {:?}", name);
+        if let Some(llpersonality) = personality {
             llvm::SetFunctionPersonalityFn(llfn, llpersonality);
         }
     }
@@ -150,6 +96,57 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
     llfn
 }
 
+pub fn get_personality(ccx: &CrateContext) -> ValueRef {
+    // The exception handling personality function.
+    //
+    // If our compilation unit has the `eh_personality` lang item somewhere
+    // within it, then we just need to translate that. Otherwise, we're
+    // building an rlib which will depend on some upstream implementation of
+    // this function, so we just codegen a generic reference to it. We don't
+    // specify any of the types for the function, we just make it a symbol
+    // that LLVM can later use.
+    //
+    // Note that MSVC is a little special here in that we don't use the
+    // `eh_personality` lang item at all. Currently LLVM has support for
+    // both Dwarf and SEH unwind mechanisms for MSVC targets and uses the
+    // *name of the personality function* to decide what kind of unwind side
+    // tables/landing pads to emit. It looks like Dwarf is used by default,
+    // injecting a dependency on the `_Unwind_Resume` symbol for resuming
+    // an "exception", but for MSVC we want to force SEH. This means that we
+    // can't actually have the personality function be our standard
+    // `rust_eh_personality` function, but rather we wired it up to the
+    // CRT's custom `__C_specific_handler` personality funciton, which
+    // forces LLVM to consider landing pads as "landing pads for SEH".
+    let target = &ccx.sess().target.target;
+        // let llpersonality = match ccx.tcx().lang_items.eh_personality() {
+        // TODO(richo) We don't obviously have a function context to lookup yet
+        // Some(def_id) if !target.options.is_like_msvc => {
+        //     callee::trans_fn_ref(ccx, def_id, ExprId(0),
+        //                          ccx.fcx.param_substs).val
+        // }
+    let mut personality = ccx.eh_personality().borrow_mut();
+    match *personality {
+        Some(llpersonality) => {
+            // warn!("Got a personality");
+            llpersonality
+        },
+        None => {
+            let name = if target.options.is_like_msvc {
+                "__C_specific_handler"
+            } else {
+                "rust_eh_personality"
+            };
+            // warn!("Looking up a personality");
+            let fty = Type::variadic_func(&[], &Type::i32(ccx));
+            // warn!("Setup fty");
+            let f = declare_cfn(ccx, name, fty, ccx.tcx().types.i32, None);
+            // warn!("Declared a fn");
+            *personality = Some(f);
+            f
+        }
+    }
+}
+
 
 /// Declare a C ABI function.
 ///
@@ -159,9 +156,9 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
 /// If there’s a value with the same name already declared, the function will
 /// update the declaration and return existing ValueRef instead.
 pub fn declare_cfn(ccx: &CrateContext, name: &str, fn_type: Type,
-                   output: ty::Ty) -> ValueRef {
+                   output: ty::Ty, personality: Option<ValueRef>) -> ValueRef {
     warn!("Entered declare_cfn");
-    declare_fn(ccx, name, llvm::CCallConv, fn_type, ty::FnConverging(output))
+    declare_fn(ccx, name, llvm::CCallConv, fn_type, ty::FnConverging(output), personality)
 }
 
 
@@ -201,7 +198,7 @@ pub fn declare_rust_fn<'a, 'tcx>(ccx: &CrateContext<'a, 'tcx>, name: &str,
 
     // it is ok to directly access sig.0.output because we erased all
     // late-bound-regions above
-    let llfn = declare_fn(ccx, name, llvm::CCallConv, llfty, sig.0.output);
+    let llfn = declare_fn(ccx, name, llvm::CCallConv, llfty, sig.0.output, None);
     attributes::from_fn_type(ccx, fn_type).apply_llfn(llfn);
     llfn
 }
@@ -247,7 +244,7 @@ pub fn define_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv, fn_ty
     if get_defined_value(ccx, name).is_some() {
         None
     } else {
-        Some(declare_fn(ccx, name, callconv, fn_type, output))
+        Some(declare_fn(ccx, name, callconv, fn_type, output, None))
     }
 }
 
@@ -266,7 +263,7 @@ pub fn define_cfn(ccx: &CrateContext, name: &str, fn_type: Type,
     if get_defined_value(ccx, name).is_some() {
         None
     } else {
-        Some(declare_cfn(ccx, name, fn_type, output))
+        Some(declare_cfn(ccx, name, fn_type, output, None))
     }
 }
 

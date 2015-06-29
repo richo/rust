@@ -791,7 +791,7 @@ fn declare_intrinsic(ccx: &CrateContext, key: & &'static str) -> Option<ValueRef
         ($name:expr, fn() -> $ret:expr) => (
             if *key == $name {
                 let f = declare::declare_cfn(ccx, $name, Type::func(&[], &$ret),
-                                             ty::mk_nil(ccx.tcx()));
+                                             ty::mk_nil(ccx.tcx()), None);
                 ccx.intrinsics().borrow_mut().insert($name, f.clone());
                 return Some(f);
             }
@@ -799,7 +799,7 @@ fn declare_intrinsic(ccx: &CrateContext, key: & &'static str) -> Option<ValueRef
         ($name:expr, fn($($arg:expr),*) -> $ret:expr) => (
             if *key == $name {
                 let f = declare::declare_cfn(ccx, $name, Type::func(&[$($arg),*], &$ret),
-                                             ty::mk_nil(ccx.tcx()));
+                                             ty::mk_nil(ccx.tcx()), None);
                 ccx.intrinsics().borrow_mut().insert($name, f.clone());
                 return Some(f);
             }
@@ -939,7 +939,7 @@ fn declare_intrinsic(ccx: &CrateContext, key: & &'static str) -> Option<ValueRef
             } else if *key == $name {
                 let f = declare::declare_cfn(ccx, stringify!($cname),
                                              Type::func(&[$($arg),*], &void),
-                                             ty::mk_nil(ccx.tcx()));
+                                             ty::mk_nil(ccx.tcx()), None);
                 llvm::SetLinkage(f, llvm::InternalLinkage);
 
                 let bld = ccx.builder();
