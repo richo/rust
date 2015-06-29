@@ -124,7 +124,10 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
         };
 
         warn!("Personality fn: {:?}", llpersonality);
-        llvm::SetFunctionPersonalityFn(llfn, llpersonality);
+        // This lurk is now officially hilarious and out of control
+        if name.starts_with("unwind_") {
+            llvm::SetFunctionPersonalityFn(llfn, llpersonality);
+        }
     }
 
     // Function addresses in Rust are never significant, allowing functions to
