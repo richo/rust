@@ -126,6 +126,7 @@ pub fn declare_fn(ccx: &CrateContext, name: &str, callconv: llvm::CallConv,
         warn!("Personality fn: {:?}", llpersonality);
         // This lurk is now officially hilarious and out of control
         if name.starts_with("unwind_") {
+            warn!("Setting a personality fn on {:?}", name);
             llvm::SetFunctionPersonalityFn(llfn, llpersonality);
         }
     }
